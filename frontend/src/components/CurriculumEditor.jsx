@@ -2,10 +2,13 @@
 import { Formik, Field, Form, FieldArray, useFormikContext } from 'formik';
 import CurriculumPreview from './CurriculumPreview';
 import useTheme from '../hooks/useTheme';
+// Importa o renderToString do React para simular a renderização do componente em string HTML
+import { renderToString } from 'react-dom/server'; 
+import CurriculumStyles from './CurriculumStyles';
 
-// Valores iniciais baseados no seu HTML
+// Valores iniciais baseados no seu HTML (Mantidos)
 const initialValues = {
-  // Seção de Dados Pessoais (Col1, Row1 e Row2)
+  // ... (restante dos initialValues)
   personal: {
     name: 'Jefferson Santos', // Título principal (H1)
     role: 'Desenvolvedor Full Stack', // Função (P)
@@ -91,185 +94,288 @@ const initialValues = {
   ],
 };
 
-// Componente que renderiza a prévia do currículo automaticamente a cada mudança
+// Componente que renderiza a prévia do currículo automaticamente a cada mudança (Mantido)
 const AutoCurriculumPreview = () => {
   const { values } = useFormikContext();
   return <CurriculumPreview data={values} />;
 };
 
+
+// -----------------------------------------------------------
+// 🌟 NOVA FUNÇÃO: Geração da string HTML completa
+// -----------------------------------------------------------
+
+/**
+ * Monta o HTML completo, incluindo todos os links, estilos e o corpo do currículo.
+ * @param {object} data - Os dados do currículo do Formik.
+ * @param {string} styles - A string CSS injetada pelo CurriculumStyles.
+ * @returns {string} O HTML completo do currículo pronto para o Puppeteer.
+ */
+const generateCurriculumHtml = (data, styles) => {
+  // 1. Gera o HTML do corpo do currículo (o que estava dentro de <div className="container">)
+  // Nota: O CurriculumPreview precisa ser adaptado (ver seção 2)
+  const curriculumBodyHtml = renderToString(<CurriculumPreview data={data} isForExport={true} />);
+
+  // 2. Monta a estrutura HTML final
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+          rel="stylesheet"
+        />
+        <title>Curriculum</title>
+        <style>
+          ${styles}
+        </style>
+      </head>
+      <body>
+        ${curriculumBodyHtml}
+      </body>
+    </html>
+  `;
+};
+
+
+// -----------------------------------------------------------
+// 🔄 Componente Principal atualizado
+// -----------------------------------------------------------
+
 const CurriculumEditor = () => {
-  const { toggleTheme } = useTheme();
-  const handleSubmit = (values, actions) => {
-    // Aqui você pode enviar os dados para um backend ou gerar o HTML/PDF.
-    console.log('Dados do Currículo Submetidos:', values);
-    actions.setSubmitting(false);
-    alert('Dados salvos/submetidos. Verifique o console para os dados JSON.');
+  const { toggleTheme, themeObject } = useTheme();
+
+  /**
+   * Função para acionar o serviço de geração de PDF no backend.
+   */
+  const handleGeneratePdf = async (values, actions) => {
+    actions.setSubmitting(true);
+    
+    try {
+        // 1. Gerar o HTML final, incluindo os estilos da pré-visualização (tema)
+        const finalHtml = generateCurriculumHtml(values, themeObject.styles);
+        
+        // 2. Enviar o HTML para o novo endpoint do Express
+        const response = await fetch("http://localhost:3000/gerar-curriculo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ htmlContent: finalHtml }),
+        });
+
+        if (!response.ok) {
+             const errorText = await response.text();
+             throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
+        }
+
+        // 3. Receber o blob (o PDF) e forçar o download
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = 'curriculo.pdf'; // O nome do arquivo definido no backend é 'curriculo.pdf'
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+
+        alert("✅ PDF gerado e download iniciado com sucesso!");
+
+    } catch (error) {
+        console.error("❌ Erro ao gerar o PDF:", error);
+        alert(`Falha ao gerar o PDF. Detalhes: ${error.message}`);
+    } finally {
+        actions.setSubmitting(false);
+    }
   };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', padding: '20px', gap: '20px' }}>
-      {/* Coluna do Formulário (Formik) */}
-      <div style={{ flex: '1', maxWidth: '400px', borderRight: '1px solid #ccc', paddingRight: '20px' }}>
-        <div className="group-title">
-          <h2>📝 Editor de Currículo</h2>
-          <button onClick={toggleTheme}>Mudar Tema</button>
-        </div>
-        <Formik
-          initialValues={initialValues}
-          onSubmit={handleSubmit}
-        >
-          {({ values, handleChange, handleBlur }) => (
-            <Form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-              {/* Seção 1: Dados Pessoais */}
-              <h3>Dados Pessoais</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #eee', padding: '10px' }}>
-                <label>Nome Principal:</label>
-                <Field name="personal.name" type="text" className="form-control" />
-                <label>Função Principal:</label>
-                <Field name="personal.role" type="text" className="form-control" />
-                <label>Nome Completo (Lista):</label>
-                <Field name="personal.fullName" type="text" className="form-control" />
-                <label>URL da Imagem:</label>
-                <Field name="personal.imageSrc" type="text" className="form-control" />
-
-                <h4 style={{ marginTop: '10px' }}>Contato</h4>
-                <label>E-mail:</label>
-                <Field name="contact.email" type="email" className="form-control" />
-                <label>Telefone:</label>
-                <Field name="contact.phone" type="text" className="form-control" />
-                <label>Endereço:</label>
-                <Field name="contact.address" type="text" className="form-control" />
-                <label>Portfolio URL:</label>
-                <Field name="contact.portfolioUrl" type="url" className="form-control" />
-                <label>LinkedIn URL:</label>
-                <Field name="contact.linkedinUrl" type="url" className="form-control" />
-                <label>GitHub URL:</label>
-                <Field name="contact.githubUrl" type="url" className="form-control" />
+      <Formik
+        initialValues={initialValues}
+        // Usamos a função de PDF no onSubmit
+        onSubmit={handleGeneratePdf} 
+      >
+        {({ values, isSubmitting }) => (
+          <>
+            {/* Coluna do Formulário */}
+            <div style={{ flex: '1', maxWidth: '400px', borderRight: '1px solid #ccc', paddingRight: '20px' }}>
+              <div className="group-title">
+                <h2>📝 Editor de Currículo</h2>
+                <button type="button" onClick={toggleTheme} disabled={isSubmitting}>Mudar Tema</button>
               </div>
+              <Form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-              {/* Seção 2: Objetivo */}
-              <h3>Objetivo</h3>
-              <Field name="objective" as="textarea" rows="4" className="form-control" />
+                {/* ... (Todo o seu Formik JSX com Fields e FieldArrays aqui, sem alterações) ... */}
+                
+                {/* Seção 1: Dados Pessoais */}
+                <h3>Dados Pessoais</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #eee', padding: '10px' }}>
+                  <label>Nome Principal:</label>
+                  <Field name="personal.name" type="text" className="form-control" />
+                  <label>Função Principal:</label>
+                  <Field name="personal.role" type="text" className="form-control" />
+                  <label>Nome Completo (Lista):</label>
+                  <Field name="personal.fullName" type="text" className="form-control" />
+                  <label>URL da Imagem:</label>
+                  <Field name="personal.imageSrc" type="text" className="form-control" />
 
-              {/* Seção 3: Formação */}
-              <h3>Formação</h3>
-              <FieldArray name="education">
-                {({ push, remove }) => (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #eee', padding: '10px' }}>
-                    {values.education.map((edu, index) => (
-                      <div className='formacao' key={index} style={{ borderBottom: '1px dashed #ccc', paddingBottom: '10px' }}>
-                        <label>Curso:</label>
-                        <Field name={`education.${index}.course`} type="text" className="form-control" />
-                        <label>Período:</label>
-                        <Field name={`education.${index}.period`} type="text" className="form-control" />
-                        <label>Instituição:</label>
-                        <Field name={`education.${index}.institution`} type="text" className="form-control" />
-                        <label>Descrição:</label>
-                        <Field name={`education.${index}.description`} as="textarea" rows="2" className="form-control" />
-                        <button type="button" onClick={() => remove(index)} style={{ marginTop: '5px' }}>
-                          Remover Formação
-                        </button>
-                      </div>
-                    ))}
-                    <button type="button" onClick={() => push({ course: '', period: '', institution: '', description: '' })}>
-                      Adicionar Formação
-                    </button>
-                  </div>
-                )}
-              </FieldArray>
+                  <h4 style={{ marginTop: '10px' }}>Contato</h4>
+                  <label>E-mail:</label>
+                  <Field name="contact.email" type="email" className="form-control" />
+                  <label>Telefone:</label>
+                  <Field name="contact.phone" type="text" className="form-control" />
+                  <label>Endereço:</label>
+                  <Field name="contact.address" type="text" className="form-control" />
+                  <label>Portfolio URL:</label>
+                  <Field name="contact.portfolioUrl" type="url" className="form-control" />
+                  <label>LinkedIn URL:</label>
+                  <Field name="contact.linkedinUrl" type="url" className="form-control" />
+                  <label>GitHub URL:</label>
+                  <Field name="contact.githubUrl" type="url" className="form-control" />
+                </div>
 
-              {/* Seção 4: Competências */}
-              <h3>Competências</h3>
-              <FieldArray name="skills">
-                {({ push, remove }) => (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #eee', padding: '10px' }}>
-                    {values.skills.map((skill, index) => (
-                      <div key={index} style={{ display: 'flex', flexDirection: 'row', gap: '10px', alignItems: 'center' }}>
-                        <Field name={`skills.${index}.name`} type="text" style={{ flex: 2 }} className="form-control" />
-                        <Field name={`skills.${index}.level`} as="select" style={{ flex: 1 }} className="form-control">
-                          <option value={1}>1</option>
-                          <option value={2}>2</option>
-                          <option value={3}>3</option>
-                          <option value={4}>4</option>
-                          <option value={5}>5</option>
-                        </Field>
-                        <button type="button" onClick={() => remove(index)}>
-                          X
-                        </button>
-                      </div>
-                    ))}
-                    <button type="button" onClick={() => push({ name: '', level: 3 })}>
-                      Adicionar Competência
-                    </button>
-                  </div>
-                )}
-              </FieldArray>
+                {/* Seção 2: Objetivo */}
+                <h3>Objetivo</h3>
+                <Field name="objective" as="textarea" rows="4" className="form-control" />
 
-              {/* Seção 5: Experiência */}
-              <h3>Experiência</h3>
-              <FieldArray name="experience">
-                {({ push, remove }) => (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', border: '1px solid #eee', padding: '10px' }}>
-                    {values.experience.map((exp, expIndex) => (
-                      <div className='experiencia' key={expIndex} style={{ borderBottom: '2px solid #ccc', paddingBottom: '15px' }}>
-                        <h4>Experiência #{expIndex + 1}</h4>
-                        <label>Cargo:</label>
-                        <Field name={`experience.${expIndex}.role`} type="text" className="form-control" />
-                        <label>Período:</label>
-                        <Field name={`experience.${expIndex}.period`} type="text" className="form-control" />
-                        <label>Empresa:</label>
-                        <Field name={`experience.${expIndex}.company`} type="text" className="form-control" />
-                        <label>Localização:</label>
-                        <Field name={`experience.${expIndex}.location`} type="text" className="form-control" />
+                {/* Seção 3: Formação */}
+                <h3>Formação</h3>
+                <FieldArray name="education">
+                  {({ push, remove }) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #eee', padding: '10px' }}>
+                      {values.education.map((edu, index) => (
+                        <div className='formacao' key={index} style={{ borderBottom: '1px dashed #ccc', paddingBottom: '10px' }}>
+                          <label>Curso:</label>
+                          <Field name={`education.${index}.course`} type="text" className="form-control" />
+                          <label>Período:</label>
+                          <Field name={`education.${index}.period`} type="text" className="form-control" />
+                          <label>Instituição:</label>
+                          <Field name={`education.${index}.institution`} type="text" className="form-control" />
+                          <label>Descrição:</label>
+                          <Field name={`education.${index}.description`} as="textarea" rows="2" className="form-control" />
+                          <button type="button" onClick={() => remove(index)} style={{ marginTop: '5px' }}>
+                            Remover Formação
+                          </button>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => push({ course: '', period: '', institution: '', description: '' })}>
+                        Adicionar Formação
+                      </button>
+                    </div>
+                  )}
+                </FieldArray>
 
-                        <h5>Responsabilidades</h5>
-                        <FieldArray name={`experience.${expIndex}.responsibilities`}>
-                          {({ push: pushResp, remove: removeResp }) => (
-                            <div className='responsas' style={{ marginLeft: '10px' }}>
-                              {exp.responsibilities.map((resp, respIndex) => (
-                                <div key={respIndex} style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
-                                  <Field name={`experience.${expIndex}.responsibilities.${respIndex}`} as="textarea" rows="2" style={{ flex: 1 }} className="form-control" />
-                                  <button type="button" onClick={() => removeResp(respIndex)}>
-                                    -
-                                  </button>
-                                </div>
-                              ))}
-                              <button type="button" onClick={() => pushResp('')}>
-                                + Responsabilidade
-                              </button>
-                            </div>
-                          )}
-                        </FieldArray>
-                        <button type="button" onClick={() => remove(expIndex)} style={{ marginTop: '10px', backgroundColor: 'red', color: 'white' }}>
-                          Remover Experiência
-                        </button>
-                      </div>
-                    ))}
-                    <button type="button" onClick={() => push({ role: '', period: '', company: '', location: '', responsibilities: [''] })}>
-                      Adicionar Experiência
-                    </button>
-                  </div>
-                )}
-              </FieldArray>
+                {/* Seção 4: Competências */}
+                <h3>Competências</h3>
+                <FieldArray name="skills">
+                  {({ push, remove }) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #eee', padding: '10px' }}>
+                      {values.skills.map((skill, index) => (
+                        <div key={index} style={{ display: 'flex', flexDirection: 'row', gap: '10px', alignItems: 'center' }}>
+                          <Field name={`skills.${index}.name`} type="text" style={{ flex: 2 }} className="form-control" />
+                          <Field name={`skills.${index}.level`} as="select" style={{ flex: 1 }} className="form-control">
+                            <option value={1}>1</option>
+                            <option value={2}>2</option>
+                            <option value={3}>3</option>
+                            <option value={4}>4</option>
+                            <option value={5}>5</option>
+                          </Field>
+                          <button type="button" onClick={() => remove(index)}>
+                            X
+                          </button>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => push({ name: '', level: 3 })}>
+                        Adicionar Competência
+                      </button>
+                    </div>
+                  )}
+                </FieldArray>
 
-              <button type="submit" style={{ padding: '10px', backgroundColor: 'rgb(0, 40, 75)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                Salvar Currículo
-              </button>
-            </Form>
-          )}
-        </Formik>
-      </div>
+                {/* Seção 5: Experiência */}
+                <h3>Experiência</h3>
+                <FieldArray name="experience">
+                  {({ push, remove }) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', border: '1px solid #eee', padding: '10px' }}>
+                      {values.experience.map((exp, expIndex) => (
+                        <div className='experiencia' key={expIndex} style={{ borderBottom: '2px solid #ccc', paddingBottom: '15px' }}>
+                          <h4>Experiência #{expIndex + 1}</h4>
+                          <label>Cargo:</label>
+                          <Field name={`experience.${expIndex}.role`} type="text" className="form-control" />
+                          <label>Período:</label>
+                          <Field name={`experience.${expIndex}.period`} type="text" className="form-control" />
+                          <label>Empresa:</label>
+                          <Field name={`experience.${expIndex}.company`} type="text" className="form-control" />
+                          <label>Localização:</label>
+                          <Field name={`experience.${expIndex}.location`} type="text" className="form-control" />
 
-      {/* Coluna da Visualização (CurriculumPreview) */}
-      <div style={{ flex: '1', overflowY: 'auto', padding: '0 20px', backgroundColor: '#f9f9f9', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '210mm', minHeight: '297mm', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
-          {/* O FormikContext permite que o AutoCurriculumPreview acesse os valores do formulário */}
-          <Formik initialValues={initialValues} onSubmit={() => {}} enableReinitialize>
-             {() => <AutoCurriculumPreview />}
-          </Formik>
-        </div>
-      </div>
+                          <h5>Responsabilidades</h5>
+                          <FieldArray name={`experience.${expIndex}.responsibilities`}>
+                            {({ push: pushResp, remove: removeResp }) => (
+                              <div className='responsas' style={{ marginLeft: '10px' }}>
+                                {exp.responsibilities.map((resp, respIndex) => (
+                                  <div key={respIndex} style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                                    <Field name={`experience.${expIndex}.responsibilities.${respIndex}`} as="textarea" rows="2" style={{ flex: 1 }} className="form-control" />
+                                    <button type="button" onClick={() => removeResp(respIndex)}>
+                                      -
+                                    </button>
+                                  </div>
+                                ))}
+                                <button type="button" onClick={() => pushResp('')}>
+                                  + Responsabilidade
+                                </button>
+                              </div>
+                            )}
+                          </FieldArray>
+                          <button type="button" onClick={() => remove(expIndex)} style={{ marginTop: '10px', backgroundColor: 'red', color: 'white' }}>
+                            Remover Experiência
+                          </button>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => push({ role: '', period: '', company: '', location: '', responsibilities: [''] })}>
+                        Adicionar Experiência
+                      </button>
+                    </div>
+                  )}
+                </FieldArray>
+
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  style={{ 
+                      padding: '10px', 
+                      backgroundColor: isSubmitting ? '#aaa' : 'rgb(0, 40, 75)', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '4px', 
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer' 
+                  }}
+                >
+                  {isSubmitting ? 'Gerando PDF...' : 'Gerar e Baixar PDF'}
+                </button>
+              </Form>
+            </div>
+
+            {/* Coluna da Visualização (CurriculumPreview) */}
+            <div style={{ flex: '1', overflowY: 'auto', padding: '0 20px', backgroundColor: '#f9f9f9', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: '210mm', minHeight: '297mm', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
+                <AutoCurriculumPreview />
+              </div>
+            </div>
+          </>
+        )}
+      </Formik>
     </div>
   );
 };

@@ -1,9 +1,16 @@
-// src/components/CurriculumPreview.js
+// src/components/CurriculumPreview.js (ou .jsx)
 
 import React from 'react';
 import CurriculumStyles from './CurriculumStyles';
-import img from '../../public/img.jpeg';
-// Função auxiliar para renderizar os círculos de nível de competência
+// IMPORTANTE: use o caminho relativo original se a imagem estiver no diretório 'public'
+// Para o export SSR (renderToString), o caminho deve ser o que o Puppeteer acessará, que é '/public/img.jpeg'
+// Para o preview local no navegador, o React pode precisar de um import diferente, mas vamos priorizar o caminho para o Puppeteer.
+// Se você está usando bundlers como Webpack/Vite, 'import img from ...' pode injetar um hash, o que é problemático para o Puppeteer. 
+// Para simplificar, vamos usar a string de caminho URL pura que o Puppeteer reconhecerá:
+const IMAGE_URL = '/public/img.jpeg'; 
+
+
+// Função auxiliar para renderizar os círculos de nível de competência (Mantida)
 const renderSkillCircles = (level) => {
   const circles = [];
   for (let i = 1; i <= 5; i++) {
@@ -17,12 +24,17 @@ const renderSkillCircles = (level) => {
   return <div className="circles">{circles}</div>;
 };
 
-const CurriculumPreview = ({ data }) => {
-  // O componente renderiza o currículo com os dados injetados
+/**
+ * Componente de Pré-visualização do Currículo.
+ * @param {object} data - Os dados do currículo.
+ * @param {boolean} [isForExport=false] - Se for true, omite o CurriculumStyles para evitar duplicação de CSS na exportação HTML.
+ */
+const CurriculumPreview = ({ data, isForExport = false }) => {
   return (
     <>
-      {/* Injeta os estilos CSS */}
-      <CurriculumStyles />
+      {/* 🛑 ATENÇÃO: Se for para exportação, NÃO injetamos o CSS aqui. */}
+      {/* O CSS será injetado diretamente na tag <style> do HTML final pelo CurriculumEditor. */}
+      {!isForExport && <CurriculumStyles />}
 
       <div className="container">
         <div className="col1">
@@ -32,11 +44,11 @@ const CurriculumPreview = ({ data }) => {
               <h1 className="title">{data.personal.name}</h1>
               <p className="function">{data.personal.role}</p>
             </div>
-            {/* O atributo src da imagem foi deixado estático, mas pode ser adicionado ao form */}
-            <img src={img} alt="Foto" />
-          </div>  
+            {/* O Puppeteer acessará o caminho /public/img.jpeg diretamente no servidor Express */}
+            <img src={IMAGE_URL} alt="Foto" /> 
+          </div> 
 
-          {/* Seção 2: Dados Pessoais */}
+          {/* Seção 2: Dados Pessoais (Mantida) */}
           <div className="row2">
             <h2 className="title">Dados pessoais</h2>
             <ul className="list">
@@ -81,7 +93,7 @@ const CurriculumPreview = ({ data }) => {
             </ul>
           </div>
 
-          {/* Seção 3: Competências */}
+          {/* Seção 3: Competências (Mantida) */}
           <div className="row3">
             <h2 className="title">Competências</h2>
             <ul className="list">
@@ -96,13 +108,13 @@ const CurriculumPreview = ({ data }) => {
         </div>
 
         <div className="col2">
-          {/* Seção 4: Objetivo */}
+          {/* Seção 4: Objetivo (Mantida) */}
           <div className="row1">
             <h2 className="title">Objetivo</h2>
             <p className="text">{data.objective}</p>
           </div>
 
-          {/* Seção 5: Formação */}
+          {/* Seção 5: Formação (Mantida) */}
           <div className="row2">
             <h2 className="title">Formação</h2>
             {data.education.map((edu, index) => (
@@ -119,7 +131,7 @@ const CurriculumPreview = ({ data }) => {
             ))}
           </div>
 
-          {/* Seção 6: Experiência */}
+          {/* Seção 6: Experiência (Mantida) */}
           <div className="row3">
             <h2 className="title">Experiência</h2>
             {data.experience.map((exp, index) => (
@@ -136,7 +148,8 @@ const CurriculumPreview = ({ data }) => {
                     {exp.responsibilities.map((resp, i) => (
                       <li key={i}>
                         <i className="bx bxs-circle"></i>
-                        {resp.includes('<a') ? <span dangerouslySetInnerHTML={{ __html: resp }} /> : resp}
+                        {/* Permite HTML embutido na responsabilidade (como tags <a>) */}
+                        <span dangerouslySetInnerHTML={{ __html: resp }} />
                       </li>
                     ))}
                   </ul>

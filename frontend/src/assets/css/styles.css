@@ -1,0 +1,67 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+input,
+textarea,
+select {
+  font-family: 'Inter', sans-serif;
+  padding: 8px;
+  border-radius: 5px;
+  outline: none;
+  border: 1px solid #ccc;
+}
+
+.group-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.group-title button {
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 8px 10px;
+  border: none;
+  background-image: linear-gradient(
+    to left,
+    rgb(0, 0, 0),
+    rgb(52, 52, 52)
+  );
+  color: white;
+}
+
+.group-title button:hover {
+  background-image: linear-gradient(
+    to left,
+    rgb(52, 52, 52),
+    rgb(0, 0, 0)
+  );
+}
+
+button {
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 8px 10px;
+  border: none;
+  background-color: #ccc;
+}
+
+.experiencia,
+.formacao,
+.responsas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+textarea {
+  resize: none; 
+  height: 10rem;
+}

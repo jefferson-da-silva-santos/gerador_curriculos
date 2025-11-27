@@ -1,19 +1,14 @@
-/* eslint-disable no-unused-vars */
 import { Formik, Field, Form, FieldArray, useFormikContext } from 'formik';
 import CurriculumPreview from './CurriculumPreview';
 import useTheme from '../hooks/useTheme';
-// Importa o renderToString do React para simular a renderização do componente em string HTML
 import { renderToString } from 'react-dom/server'; 
-import CurriculumStyles from './CurriculumStyles';
 
-// Valores iniciais baseados no seu HTML (Mantidos)
 const initialValues = {
-  // ... (restante dos initialValues)
   personal: {
-    name: 'Jefferson Santos', // Título principal (H1)
-    role: 'Desenvolvedor Full Stack', // Função (P)
-    fullName: 'Jefferson da Silva Santos', // Nome completo (Item da lista)
-    imageSrc: '/public/img.jpeg', // Imagem
+    name: 'Jefferson Santos', 
+    role: 'Desenvolvedor Full Stack', 
+    fullName: 'Jefferson da Silva Santos', 
+    imageSrc: '/public/img.jpeg',
   },
   contact: {
     portfolioUrl: 'https://jeffersondev.netlify.app',
@@ -25,7 +20,7 @@ const initialValues = {
     githubUrl: 'https://github.com/jefferson-da-silva-santos',
     githubHandle: 'jefferson-da-silva-santos',
   },
-  // Seção de Competências (Col1, Row3)
+
   skills: [
     { name: 'React', level: 4 },
     { name: 'Next.js', level: 4 },
@@ -44,10 +39,9 @@ const initialValues = {
     { name: 'UI / UX', level: 4 },
     { name: 'Figma', level: 4 },
   ],
-  // Seção de Objetivo (Col2, Row1)
+
   objective:
     'Atuar como desenvolvedor Full Stack, criando soluções completas, modernas e escaláveis, ou contribuindo especificamente no front-end ou back-end. Trabalho com boas práticas de arquitetura, testes e metodologias ágeis para entregar produtos de alta qualidade e impacto real. Disponível para início imediato.',
-  // Seção de Formação (Col2, Row2)
   education: [
     {
       course: 'Desenvolvimento de Sistemas',
@@ -57,7 +51,7 @@ const initialValues = {
         'Formação técnica em Desenvolvimento de Sistemas, trabalhando com desenvolvimento full stack, lógica, banco de dados, versionamento, UI/UX e práticas de programação moderna.',
     },
   ],
-  // Seção de Experiência (Col2, Row3)
+
   experience: [
     {
       role: 'Desenvolvedor Junior',
@@ -94,29 +88,14 @@ const initialValues = {
   ],
 };
 
-// Componente que renderiza a prévia do currículo automaticamente a cada mudança (Mantido)
 const AutoCurriculumPreview = () => {
   const { values } = useFormikContext();
   return <CurriculumPreview data={values} />;
 };
 
-
-// -----------------------------------------------------------
-// 🌟 NOVA FUNÇÃO: Geração da string HTML completa
-// -----------------------------------------------------------
-
-/**
- * Monta o HTML completo, incluindo todos os links, estilos e o corpo do currículo.
- * @param {object} data - Os dados do currículo do Formik.
- * @param {string} styles - A string CSS injetada pelo CurriculumStyles.
- * @returns {string} O HTML completo do currículo pronto para o Puppeteer.
- */
 const generateCurriculumHtml = (data, styles) => {
-  // 1. Gera o HTML do corpo do currículo (o que estava dentro de <div className="container">)
-  // Nota: O CurriculumPreview precisa ser adaptado (ver seção 2)
   const curriculumBodyHtml = renderToString(<CurriculumPreview data={data} isForExport={true} />);
 
-  // 2. Monta a estrutura HTML final
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -146,24 +125,15 @@ const generateCurriculumHtml = (data, styles) => {
 };
 
 
-// -----------------------------------------------------------
-// 🔄 Componente Principal atualizado
-// -----------------------------------------------------------
-
 const CurriculumEditor = () => {
   const { toggleTheme, themeObject } = useTheme();
 
-  /**
-   * Função para acionar o serviço de geração de PDF no backend.
-   */
   const handleGeneratePdf = async (values, actions) => {
     actions.setSubmitting(true);
     
     try {
-        // 1. Gerar o HTML final, incluindo os estilos da pré-visualização (tema)
         const finalHtml = generateCurriculumHtml(values, themeObject.styles);
         
-        // 2. Enviar o HTML para o novo endpoint do Express
         const response = await fetch("http://localhost:3000/gerar-curriculo", {
             method: "POST",
             headers: {

@@ -5,7 +5,6 @@ import { renderToString } from 'react-dom/server';
 import useFont from '../hooks/useFont';
 
 const initialValues = {
-  // ... (initialValues permanece inalterado)
   personal: {
     name: 'Jefferson Santos', 
     role: 'Desenvolvedor Full Stack', 
@@ -183,7 +182,7 @@ const CurriculumEditor = () => {
             {/* Coluna do Formulário */}
             <div className="editor-form-column">
               <div className="group-title">
-                <h2>📝 Editor de Currículo</h2>
+                <h2>Editor de Currículo</h2>
                 <div className='group-buttons'>
                   <button type="button" onClick={toggleTheme} disabled={isSubmitting}>
                     {themeObject.theme}{" "}<i className="bx bx-palette"></i>

@@ -17,7 +17,7 @@ app.use("/public", express.static(path.join(process.cwd(), "public")));
 
 // --- CONFIGURAÇÃO PUPPETEER/CHROME ---
 const chromePath =
-  "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe";
+  "C:/Users/jeffr/.codeium/ws-browser/chromium-1155/chrome-win/chrome.exe";
 
 // Função utilitária para lançar o navegador
 const launchBrowser = async () => {

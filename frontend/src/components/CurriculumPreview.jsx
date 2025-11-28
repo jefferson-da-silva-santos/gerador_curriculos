@@ -1,16 +1,7 @@
-// src/components/CurriculumPreview.js (ou .jsx)
-
-import React from 'react';
+import useFont from '../hooks/useFont';
 import CurriculumStyles from './CurriculumStyles';
-// IMPORTANTE: use o caminho relativo original se a imagem estiver no diretório 'public'
-// Para o export SSR (renderToString), o caminho deve ser o que o Puppeteer acessará, que é '/public/img.jpeg'
-// Para o preview local no navegador, o React pode precisar de um import diferente, mas vamos priorizar o caminho para o Puppeteer.
-// Se você está usando bundlers como Webpack/Vite, 'import img from ...' pode injetar um hash, o que é problemático para o Puppeteer. 
-// Para simplificar, vamos usar a string de caminho URL pura que o Puppeteer reconhecerá:
-const IMAGE_URL = '/public/img.jpeg'; 
+const IMAGE_URL = '/public/img.jpeg';
 
-
-// Função auxiliar para renderizar os círculos de nível de competência (Mantida)
 const renderSkillCircles = (level) => {
   const circles = [];
   for (let i = 1; i <= 5; i++) {
@@ -24,31 +15,42 @@ const renderSkillCircles = (level) => {
   return <div className="circles">{circles}</div>;
 };
 
-/**
- * Componente de Pré-visualização do Currículo.
- * @param {object} data - Os dados do currículo.
- * @param {boolean} [isForExport=false] - Se for true, omite o CurriculumStyles para evitar duplicação de CSS na exportação HTML.
- */
 const CurriculumPreview = ({ data, isForExport = false }) => {
+  // O hook useFont retorna um objeto como: { id: 1, font: "Inter", link: "...", styles: "font-family: 'Inter', sans-serif;" }
+  const { font } = useFont(); 
+  
+  // Extrai o valor do estilo da fonte, por exemplo: "font-family: 'Inter', sans-serif;"
+  // e o transforma em um objeto de estilo React, ex: { fontFamily: "'Inter', sans-serif" }
+  // Apenas a parte da família da fonte é usada para a prop `style`.
+  const fontStyle = {};
+  if (font && font.styles) {
+      const match = font.styles.match(/font-family:\s*(.*?);/);
+      if (match && match[1]) {
+          // Converte para camelCase: 'font-family' -> 'fontFamily'
+          fontStyle.fontFamily = match[1].replace(/['"]/g, ''); // Remove aspas para o estilo direto
+      }
+  }
+
   return (
     <>
-      {/* 🛑 ATENÇÃO: Se for para exportação, NÃO injetamos o CSS aqui. */}
-      {/* O CSS será injetado diretamente na tag <style> do HTML final pelo CurriculumEditor. */}
+      {/* Adiciona o link da fonte se o componente não for para exportação.
+        O componente CurriculumStyles deve injetar o CSS da fonte (ou o link)
+        ou você precisará de uma forma de injetar o link `font.link` aqui, 
+        se ele não estiver no `CurriculumStyles` ou no HTML global.
+      */}
       {!isForExport && <CurriculumStyles />}
 
-      <div className="container">
+      {/* Aplica o estilo da fonte ao container usando a prop `style` */}
+      <div className="container" style={fontStyle}>
         <div className="col1">
-          {/* Seção 1: Nome e Cargo */}
           <div className="row1">
             <div className="overlay">
               <h1 className="title">{data.personal.name}</h1>
               <p className="function">{data.personal.role}</p>
             </div>
-            {/* O Puppeteer acessará o caminho /public/img.jpeg diretamente no servidor Express */}
             <img src={IMAGE_URL} alt="Foto" /> 
           </div> 
 
-          {/* Seção 2: Dados Pessoais (Mantida) */}
           <div className="row2">
             <h2 className="title">Dados pessoais</h2>
             <ul className="list">
@@ -93,7 +95,7 @@ const CurriculumPreview = ({ data, isForExport = false }) => {
             </ul>
           </div>
 
-          {/* Seção 3: Competências (Mantida) */}
+          {/* Seção 3: Competências */}
           <div className="row3">
             <h2 className="title">Competências</h2>
             <ul className="list">
@@ -108,13 +110,13 @@ const CurriculumPreview = ({ data, isForExport = false }) => {
         </div>
 
         <div className="col2">
-          {/* Seção 4: Objetivo (Mantida) */}
+          {/* Seção 4: Objetivo */}
           <div className="row1">
             <h2 className="title">Objetivo</h2>
             <p className="text">{data.objective}</p>
           </div>
 
-          {/* Seção 5: Formação (Mantida) */}
+          {/* Seção 5: Formação */}
           <div className="row2">
             <h2 className="title">Formação</h2>
             {data.education.map((edu, index) => (
@@ -131,7 +133,7 @@ const CurriculumPreview = ({ data, isForExport = false }) => {
             ))}
           </div>
 
-          {/* Seção 6: Experiência (Mantida) */}
+          {/* Seção 6: Experiência */}
           <div className="row3">
             <h2 className="title">Experiência</h2>
             {data.experience.map((exp, index) => (

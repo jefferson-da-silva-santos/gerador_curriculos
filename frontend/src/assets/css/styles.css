@@ -1,11 +1,36 @@
-
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&family=Mukta:wght@200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap');
+
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
 }
 
 input,
@@ -38,6 +63,12 @@ select {
   color: white;
 }
 
+.group-buttons {
+  display: flex;
+  gap: 10px;
+  
+}
+
 .group-title button:hover {
   background-image: linear-gradient(
     to left,
@@ -64,4 +95,157 @@ button {
 
 textarea {
   resize: none;
+}
+
+/*
+ * --------------------------------
+ * Layout Principal do Editor
+ * --------------------------------
+ */
+.editor-container {
+  display: flex;
+  min-height: 100vh;
+  padding: 20px;
+  gap: 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+/*
+ * --------------------------------
+ * Coluna do Formulário
+ * --------------------------------
+ */
+.editor-form-column {
+  flex: 1;
+  max-width: 400px;
+  border-right: 1px solid #ccc;
+  padding-right: 20px;
+}
+
+.editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Espaço entre as seções (h3) */
+}
+
+.group-title {
+  /* Se precisar de estilo para o título do editor e o botão de tema */
+}
+
+/*
+ * --------------------------------
+ * Elementos de Campo
+ * --------------------------------
+ */
+.form-control {
+  /* Classe que você já estava usando para inputs/textareas */
+  /* Adicione aqui estilos básicos como padding, border, etc. se necessário */
+}
+
+.input-group-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Espaço entre os campos de um grupo */
+  border: 1px solid #eee;
+  padding: 10px;
+}
+
+.sub-section-title {
+  margin-top: 10px;
+}
+
+/*
+ * --------------------------------
+ * Itens Dinâmicos (Formação/Experiência/Competências)
+ * --------------------------------
+ */
+
+.form-item-border {
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 10px;
+}
+
+.form-item-double-border {
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 15px;
+}
+
+.remove-button-margin {
+  margin-top: 5px;
+}
+
+/* Competências */
+.skill-item-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+}
+
+.skill-name-field {
+  flex: 2;
+}
+
+.skill-level-field {
+  flex: 1;
+}
+
+/* Responsabilidades da Experiência */
+.responsa-list-indent {
+  margin-left: 10px;
+}
+
+.responsa-item-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.responsa-field {
+  flex: 1;
+}
+
+.remove-experience-button {
+  margin-top: 10px;
+  background-color: red;
+  color: white;
+}
+
+/*
+ * --------------------------------
+ * Botão de Submissão (Gerar PDF)
+ * --------------------------------
+ */
+.submit-button {
+  padding: 10px;
+  background-color: rgb(0, 40, 75);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-button.submitting {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+/*
+ * --------------------------------
+ * Coluna da Visualização
+ * --------------------------------
+ */
+.editor-preview-column {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px;
+  background-color: #f9f9f9;
+  display: flex;
+  justify-content: center;
+}
+
+.preview-page-mockup {
+  width: 210mm; /* Largura A4 */
+  min-height: 297mm; /* Altura A4 */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }

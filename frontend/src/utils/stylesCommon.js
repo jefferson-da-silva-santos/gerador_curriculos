@@ -1,4 +1,6 @@
-export const stylesCommon = `
+export const stylesCommon = (font) => {
+    return (
+        `
     /* Reset + print-friendliness */
     @page {
         size: A4;
@@ -20,7 +22,7 @@ export const stylesCommon = `
     }
 
     body {
-        font-family: "Saira", sans-serif;
+        ${font}
     }
 
     h1, h3, h4, h5, h6 {
@@ -320,6 +322,8 @@ export const stylesCommon = `
     a {
         text-decoration: none;
     }
-`;
+`
+    )
+};
 
 export default stylesCommon;

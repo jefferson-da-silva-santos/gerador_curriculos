@@ -1,7 +1,7 @@
 import stylesCommon from "./stylesCommon";
 
-export const stylesThemeBlue = `
-    ${stylesCommon}
+export const stylesThemeBlue = (font) => `
+    ${stylesCommon(font)}
 
     /* Cores */
     .container .col1 .overlay {
@@ -26,7 +26,7 @@ export const stylesThemeBlue = `
 
     .container .col1 .row2 i {
         color: rgb(0, 40, 75);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     .container .col1 .row3 .title {
@@ -54,8 +54,8 @@ export const stylesThemeBlue = `
     }
 `;
 
-export const stylesThemePink = `
-    ${stylesCommon}
+export const stylesThemePink = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(123, 0, 90) */
     
@@ -82,7 +82,7 @@ export const stylesThemePink = `
 
     .container .col1 .row2 i {
         color: rgb(123, 0, 90);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -110,8 +110,8 @@ export const stylesThemePink = `
     }
 `;
 
-export const stylesThemeGreen = `
-    ${stylesCommon}
+export const stylesThemeGreen = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Verde ====
       Cor base: green (ou rgba(0,128,0,*) quando precisar de variação)
@@ -143,6 +143,10 @@ export const stylesThemeGreen = `
         color: green;
     }
 
+    .container .col1 .row2 i {
+        font-size: 1.3rem;
+    }
+
     /* Row3 títulos */
     .container .col1 .row3 .title {
         color: green;
@@ -170,9 +174,8 @@ export const stylesThemeGreen = `
     }
 `;
 
-
-export const stylesThemeRed = `
-    ${stylesCommon}
+export const stylesThemeRed = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Vermelho ====
        Cor base: rgb(163, 0, 0)
@@ -207,7 +210,7 @@ export const stylesThemeRed = `
     /* Ícones pessoais */
     .container .col1 .row2 i {
         color: rgb(163, 0, 0);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     /* Círculos de skills (competências) */
@@ -235,9 +238,8 @@ export const stylesThemeRed = `
     }
 `;
 
-
-export const stylesThemeYellow = `
-    ${stylesCommon}
+export const stylesThemeYellow = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Amarelo ====
        Cor base: rgb(163, 163, 0)
@@ -271,7 +273,7 @@ export const stylesThemeYellow = `
     }
 
     .container .col1 .row2 i {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     /* Círculos de Skills */
@@ -299,9 +301,8 @@ export const stylesThemeYellow = `
     }
 `;
 
-
-export const stylesThemeBlack = `
-    ${stylesCommon}
+export const stylesThemeBlack = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Preto ====
        Cor base: black
@@ -335,8 +336,8 @@ export const stylesThemeBlack = `
     }
 
     /* Ícones pessoais */
-    .container .col1 .row2 i {
-        font-size: 1.5rem;
+    .container .col1 .row23i {
+        font-size: 1.3rem;
     }
 
     /* Círculos de Skills */
@@ -364,8 +365,8 @@ export const stylesThemeBlack = `
     }
 `;
 
-export const stylesThemeOrange = `
-    ${stylesCommon}
+export const stylesThemeOrange = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Laranja ====
        Cor base: rgb(230, 124, 0)
@@ -392,10 +393,11 @@ export const stylesThemeOrange = `
     .container .col1 .row2 li,
     .container .col1 .row2 i {
         color: rgb(230, 124, 0);
+        
     }
 
     .container .col1 .row2 i {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     .container .col1 .row3 .list .circles .circle {
@@ -413,8 +415,8 @@ export const stylesThemeOrange = `
     }
 `;
 
-export const stylesThemeGray = `
-    ${stylesCommon}
+export const stylesThemeGray = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Cinza ====
        Cor base: rgb(80, 80, 80)
@@ -444,7 +446,7 @@ export const stylesThemeGray = `
     }
 
     .container .col1 .row2 i {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     .container .col1 .row3 .list .circles .circle {
@@ -462,9 +464,8 @@ export const stylesThemeGray = `
     }
 `;
 
-
-export const stylesThemeLightPink = `
-    ${stylesCommon}
+export const stylesThemeLightPink = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Rosa Claro ====
        Cor base: rgb(255, 160, 190)
@@ -495,7 +496,7 @@ export const stylesThemeLightPink = `
     }
 
     .container .col1 .row2 i {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     .container .col1 .row3 .list .circles .circle {
@@ -513,10 +514,8 @@ export const stylesThemeLightPink = `
     }
 `;
 
-
-
-export const stylesThemeGold = `
-    ${stylesCommon}
+export const stylesThemeGold = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Dourado ====
        Cor base: rgb(212, 175, 55)
@@ -547,7 +546,7 @@ export const stylesThemeGold = `
     }
 
     .container .col1 .row2 i {
-        font-size: 1.52rem;
+        font-size: 1.3rem;
     }
 
     .container .col1 .row3 .list .circles .circle {
@@ -565,8 +564,8 @@ export const stylesThemeGold = `
     }
 `;
 
-export const stylesThemeLime = `
-    ${stylesCommon}
+export const stylesThemeLime = (font) => `
+    ${stylesCommon(font)}
 
     /* ==== Tema Verde Limão ====
        Cor base: rgb(120, 255, 0)
@@ -597,7 +596,7 @@ export const stylesThemeLime = `
     }
 
     .container .col1 .row2 i {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     .container .col1 .row3 .list .circles .circle {
@@ -615,9 +614,8 @@ export const stylesThemeLime = `
     }
 `;
 
-
-export const stylesThemeDarkBlue = `
-    ${stylesCommon}
+export const stylesThemeDarkBlue = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(0, 40, 75) */
     
@@ -645,7 +643,7 @@ export const stylesThemeDarkBlue = `
 
     .container .col1 .row2 i {
         color: rgb(0, 40, 75);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -674,9 +672,8 @@ export const stylesThemeDarkBlue = `
     }
 `;
 
-
-export const stylesThemeLightBlue = `
-    ${stylesCommon}
+export const stylesThemeLightBlue = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(0, 150, 200) */
     
@@ -704,7 +701,7 @@ export const stylesThemeLightBlue = `
 
     .container .col1 .row2 i {
         color: rgb(0, 150, 200);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -733,9 +730,8 @@ export const stylesThemeLightBlue = `
     }
 `;
 
-
-export const stylesThemeBeige = `
-    ${stylesCommon}
+export const stylesThemeBeige = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(184, 134, 11) */
     
@@ -763,7 +759,7 @@ export const stylesThemeBeige = `
 
     .container .col1 .row2 i {
         color: rgb(184, 134, 11);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -792,8 +788,8 @@ export const stylesThemeBeige = `
     }
 `;
 
-export const stylesThemeHotPink = `
-    ${stylesCommon}
+export const stylesThemeHotPink = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(255, 20, 147) */
     
@@ -821,7 +817,7 @@ export const stylesThemeHotPink = `
 
     .container .col1 .row2 i {
         color: rgb(255, 20, 147);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -850,8 +846,8 @@ export const stylesThemeHotPink = `
     }
 `;
 
-export const stylesThemeViolet = `
-    ${stylesCommon}
+export const stylesThemeViolet = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(138, 43, 226) */
     
@@ -879,7 +875,7 @@ export const stylesThemeViolet = `
 
     .container .col1 .row2 i {
         color: rgb(138, 43, 226);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -908,9 +904,8 @@ export const stylesThemeViolet = `
     }
 `;
 
-
-export const stylesThemePurple = `
-    ${stylesCommon}
+export const stylesThemePurple = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(75, 0, 130) */
     
@@ -938,7 +933,7 @@ export const stylesThemePurple = `
 
     .container .col1 .row2 i {
         color: rgb(75, 0, 130);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -967,8 +962,8 @@ export const stylesThemePurple = `
     }
 `;
 
-export const stylesThemeCyan = `
-    ${stylesCommon}
+export const stylesThemeCyan = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(0, 150, 150) */
     
@@ -996,7 +991,7 @@ export const stylesThemeCyan = `
 
     .container .col1 .row2 i {
         color: rgb(0, 150, 150);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {
@@ -1025,9 +1020,8 @@ export const stylesThemeCyan = `
     }
 `;
 
-
-export const stylesThemeWine = `
-    ${stylesCommon}
+export const stylesThemeWine = (font) => `
+    ${stylesCommon(font)}
 
     /* Definições de cor base: rgb(128, 0, 32) */
     
@@ -1055,7 +1049,7 @@ export const stylesThemeWine = `
 
     .container .col1 .row2 i {
         color: rgb(128, 0, 32);
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .container .col1 .row3 .title {

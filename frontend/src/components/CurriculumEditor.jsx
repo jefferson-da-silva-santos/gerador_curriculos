@@ -2,8 +2,10 @@ import { Formik, Field, Form, FieldArray, useFormikContext } from 'formik';
 import CurriculumPreview from './CurriculumPreview';
 import useTheme from '../hooks/useTheme';
 import { renderToString } from 'react-dom/server'; 
+import useFont from '../hooks/useFont';
 
 const initialValues = {
+  // ... (initialValues permanece inalterado)
   personal: {
     name: 'Jefferson Santos', 
     role: 'Desenvolvedor Full Stack', 
@@ -93,7 +95,7 @@ const AutoCurriculumPreview = () => {
   return <CurriculumPreview data={values} />;
 };
 
-const generateCurriculumHtml = (data, styles) => {
+const generateCurriculumHtml = (data, styles, font) => {
   const curriculumBodyHtml = renderToString(<CurriculumPreview data={data} isForExport={true} />);
 
   return `
@@ -105,7 +107,7 @@ const generateCurriculumHtml = (data, styles) => {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
-          href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap"
+          href=${font}
           rel="stylesheet"
         />
         <link
@@ -127,12 +129,13 @@ const generateCurriculumHtml = (data, styles) => {
 
 const CurriculumEditor = () => {
   const { toggleTheme, themeObject } = useTheme();
+  const { font, toggleFont } = useFont();
 
   const handleGeneratePdf = async (values, actions) => {
     actions.setSubmitting(true);
     
     try {
-        const finalHtml = generateCurriculumHtml(values, themeObject.styles);
+        const finalHtml = generateCurriculumHtml(values, themeObject.styles, font.link);
         
         const response = await fetch("http://localhost:3000/gerar-curriculo", {
             method: "POST",
@@ -170,27 +173,31 @@ const CurriculumEditor = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', padding: '20px', gap: '20px' }}>
+    <div className="editor-container">
       <Formik
         initialValues={initialValues}
-        // Usamos a função de PDF no onSubmit
         onSubmit={handleGeneratePdf} 
       >
         {({ values, isSubmitting }) => (
           <>
             {/* Coluna do Formulário */}
-            <div style={{ flex: '1', maxWidth: '400px', borderRight: '1px solid #ccc', paddingRight: '20px' }}>
+            <div className="editor-form-column">
               <div className="group-title">
                 <h2>📝 Editor de Currículo</h2>
-                <button type="button" onClick={toggleTheme} disabled={isSubmitting}>Mudar Tema</button>
+                <div className='group-buttons'>
+                  <button type="button" onClick={toggleTheme} disabled={isSubmitting}>
+                    {themeObject.theme}{" "}<i className="bx bx-palette"></i>
+                  </button>
+                  <button type="button" onClick={toggleFont} disabled={isSubmitting}>
+                    {font.font}{" "}<i className="bx bx-text"></i>
+                  </button>
+                </div>
               </div>
-              <Form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <Form className="editor-form">
 
-                {/* ... (Todo o seu Formik JSX com Fields e FieldArrays aqui, sem alterações) ... */}
-                
                 {/* Seção 1: Dados Pessoais */}
                 <h3>Dados Pessoais</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #eee', padding: '10px' }}>
+                <div className="input-group-section">
                   <label>Nome Principal:</label>
                   <Field name="personal.name" type="text" className="form-control" />
                   <label>Função Principal:</label>
@@ -200,7 +207,7 @@ const CurriculumEditor = () => {
                   <label>URL da Imagem:</label>
                   <Field name="personal.imageSrc" type="text" className="form-control" />
 
-                  <h4 style={{ marginTop: '10px' }}>Contato</h4>
+                  <h4 className="sub-section-title">Contato</h4>
                   <label>E-mail:</label>
                   <Field name="contact.email" type="email" className="form-control" />
                   <label>Telefone:</label>
@@ -223,9 +230,9 @@ const CurriculumEditor = () => {
                 <h3>Formação</h3>
                 <FieldArray name="education">
                   {({ push, remove }) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #eee', padding: '10px' }}>
+                    <div className="input-group-section">
                       {values.education.map((edu, index) => (
-                        <div className='formacao' key={index} style={{ borderBottom: '1px dashed #ccc', paddingBottom: '10px' }}>
+                        <div className='formacao form-item-border' key={index}>
                           <label>Curso:</label>
                           <Field name={`education.${index}.course`} type="text" className="form-control" />
                           <label>Período:</label>
@@ -234,7 +241,7 @@ const CurriculumEditor = () => {
                           <Field name={`education.${index}.institution`} type="text" className="form-control" />
                           <label>Descrição:</label>
                           <Field name={`education.${index}.description`} as="textarea" rows="2" className="form-control" />
-                          <button type="button" onClick={() => remove(index)} style={{ marginTop: '5px' }}>
+                          <button type="button" onClick={() => remove(index)} className="remove-button-margin">
                             Remover Formação
                           </button>
                         </div>
@@ -250,11 +257,11 @@ const CurriculumEditor = () => {
                 <h3>Competências</h3>
                 <FieldArray name="skills">
                   {({ push, remove }) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #eee', padding: '10px' }}>
+                    <div className="input-group-section">
                       {values.skills.map((skill, index) => (
-                        <div key={index} style={{ display: 'flex', flexDirection: 'row', gap: '10px', alignItems: 'center' }}>
-                          <Field name={`skills.${index}.name`} type="text" style={{ flex: 2 }} className="form-control" />
-                          <Field name={`skills.${index}.level`} as="select" style={{ flex: 1 }} className="form-control">
+                        <div key={index} className="skill-item-row">
+                          <Field name={`skills.${index}.name`} type="text" className="form-control skill-name-field" />
+                          <Field name={`skills.${index}.level`} as="select" className="form-control skill-level-field">
                             <option value={1}>1</option>
                             <option value={2}>2</option>
                             <option value={3}>3</option>
@@ -277,9 +284,9 @@ const CurriculumEditor = () => {
                 <h3>Experiência</h3>
                 <FieldArray name="experience">
                   {({ push, remove }) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', border: '1px solid #eee', padding: '10px' }}>
+                    <div className="input-group-section">
                       {values.experience.map((exp, expIndex) => (
-                        <div className='experiencia' key={expIndex} style={{ borderBottom: '2px solid #ccc', paddingBottom: '15px' }}>
+                        <div className='experiencia form-item-double-border' key={expIndex}>
                           <h4>Experiência #{expIndex + 1}</h4>
                           <label>Cargo:</label>
                           <Field name={`experience.${expIndex}.role`} type="text" className="form-control" />
@@ -293,10 +300,10 @@ const CurriculumEditor = () => {
                           <h5>Responsabilidades</h5>
                           <FieldArray name={`experience.${expIndex}.responsibilities`}>
                             {({ push: pushResp, remove: removeResp }) => (
-                              <div className='responsas' style={{ marginLeft: '10px' }}>
+                              <div className='responsas responsa-list-indent'>
                                 {exp.responsibilities.map((resp, respIndex) => (
-                                  <div key={respIndex} style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
-                                    <Field name={`experience.${expIndex}.responsibilities.${respIndex}`} as="textarea" rows="2" style={{ flex: 1 }} className="form-control" />
+                                  <div key={respIndex} className="responsa-item-row">
+                                    <Field name={`experience.${expIndex}.responsibilities.${respIndex}`} as="textarea" rows="2" className="form-control responsa-field" />
                                     <button type="button" onClick={() => removeResp(respIndex)}>
                                       -
                                     </button>
@@ -308,7 +315,7 @@ const CurriculumEditor = () => {
                               </div>
                             )}
                           </FieldArray>
-                          <button type="button" onClick={() => remove(expIndex)} style={{ marginTop: '10px', backgroundColor: 'red', color: 'white' }}>
+                          <button type="button" onClick={() => remove(expIndex)} className="remove-experience-button">
                             Remover Experiência
                           </button>
                         </div>
@@ -323,14 +330,7 @@ const CurriculumEditor = () => {
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  style={{ 
-                      padding: '10px', 
-                      backgroundColor: isSubmitting ? '#aaa' : 'rgb(0, 40, 75)', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px', 
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer' 
-                  }}
+                  className={`submit-button ${isSubmitting ? 'submitting' : ''}`}
                 >
                   {isSubmitting ? 'Gerando PDF...' : 'Gerar e Baixar PDF'}
                 </button>
@@ -338,8 +338,8 @@ const CurriculumEditor = () => {
             </div>
 
             {/* Coluna da Visualização (CurriculumPreview) */}
-            <div style={{ flex: '1', overflowY: 'auto', padding: '0 20px', backgroundColor: '#f9f9f9', display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: '210mm', minHeight: '297mm', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
+            <div className="editor-preview-column">
+              <div className="preview-page-mockup">
                 <AutoCurriculumPreview />
               </div>
             </div>

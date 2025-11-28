@@ -6,7 +6,7 @@ import {
   stylesThemeGreen,
   stylesThemePink,
   stylesThemeRed,
-  stylesThemeYellow, 
+  stylesThemeYellow,
   stylesThemeDarkBlue,
   stylesThemeLightBlue,
   stylesThemeBeige,
@@ -21,107 +21,111 @@ import {
   stylesThemeGold,
   stylesThemeLime,
 } from "../utils/themeStyles";
+import useFont from "../hooks/useFont";
 
-const themes = [
+const getThemes = (font) => [
   {
     id: 1,
     theme: "blue-theme",
-    styles: stylesThemeBlue,
+    styles: stylesThemeBlue(font),
   },
   {
     id: 2,
     theme: "pink-theme",
-    styles: stylesThemePink,
+    styles: stylesThemePink(font),
   },
   {
     id: 3,
     theme: "green-theme",
-    styles: stylesThemeGreen,
+    styles: stylesThemeGreen(font),
   },
   {
     id: 4,
     theme: "red-theme",
-    styles: stylesThemeRed,
+    styles: stylesThemeRed(font),
   },
   {
     id: 5,
     theme: "yellow-theme",
-    styles: stylesThemeYellow,
+    styles: stylesThemeYellow(font),
   },
   {
     id: 6,
     theme: "black-theme",
-    styles: stylesThemeBlack,
+    styles: stylesThemeBlack(font),
   }, // NOVOS TEMAS ADICIONADOS
   {
     id: 7,
     theme: "dark-blue-theme",
-    styles: stylesThemeDarkBlue,
+    styles: stylesThemeDarkBlue(font),
   },
   {
     id: 8,
     theme: "light-blue-theme",
-    styles: stylesThemeLightBlue,
+    styles: stylesThemeLightBlue(font),
   },
   {
     id: 9,
     theme: "beige-theme",
-    styles: stylesThemeBeige,
+    styles: stylesThemeBeige(font),
   },
   {
     id: 10,
     theme: "hot-pink-theme",
-    styles: stylesThemeHotPink,
+    styles: stylesThemeHotPink(font),
   },
   {
     id: 11,
     theme: "violet-theme",
-    styles: stylesThemeViolet,
+    styles: stylesThemeViolet(font),
   },
   {
     id: 12,
     theme: "purple-theme",
-    styles: stylesThemePurple,
+    styles: stylesThemePurple(font),
   },
   {
     id: 13,
     theme: "cyan-theme",
-    styles: stylesThemeCyan,
+    styles: stylesThemeCyan(font),
   },
   {
     id: 14,
     theme: "wine-theme",
-    styles: stylesThemeWine,
+    styles: stylesThemeWine(font),
   },
   {
     id: 15,
     theme: "orange-theme",
-    styles: stylesThemeOrange,
+    styles: stylesThemeOrange(font),
   },
   {
     id: 16,
     theme: "gray-theme",
-    styles: stylesThemeGray,
+    styles: stylesThemeGray(font),
   },
   {
     id: 17,
     theme: "light-pink-theme",
-    styles: stylesThemeLightPink,
+    styles: stylesThemeLightPink(font),
   },
   {
     id: 18,
     theme: "gold-theme",
-    styles: stylesThemeGold,
+    styles: stylesThemeGold(font),
   },
   {
     id: 19,
     theme: "lime-theme",
-    styles: stylesThemeLime,
+    styles: stylesThemeLime(font),
   },
 ];
 
 const ThemeProvider = ({ children }) => {
-  const [themeObject, setThemeObject] = useState(themes[0]); 
+  const { font } = useFont();
+  const themes = getThemes(font);
+  const [themeObject, setThemeObject] = useState(themes[0]);
+  
   const toggleTheme = () => {
     const currentThemeIndex = themes.findIndex(
       (t) => t.theme === themeObject.theme
@@ -137,7 +141,7 @@ const ThemeProvider = ({ children }) => {
         toggleTheme,
       }}
     >
-            {children}   {" "}
+      {children}{" "}
     </ThemeContext.Provider>
   );
 };

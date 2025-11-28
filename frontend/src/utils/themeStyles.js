@@ -336,7 +336,7 @@ export const stylesThemeBlack = (font) => `
     }
 
     /* Ícones pessoais */
-    .container .col1 .row23i {
+    .container .col1 .row2 i {
         font-size: 1.3rem;
     }
 

@@ -6,22 +6,46 @@ import useFont from '../hooks/useFont';
 
 const initialValues = {
   personal: {
-    name: 'Jefferson Santos', 
-    role: 'Desenvolvedor Full Stack', 
-    fullName: 'Jefferson da Silva Santos', 
+    name: 'Jefferson Santos',
+    role: 'Desenvolvedor Full Stack',
+    fullName: 'Jefferson da Silva Santos',
     imageSrc: '/public/img.jpeg',
   },
   contact: {
-    portfolioUrl: 'https://jeffersondev.netlify.app',
     email: 'jeffrrwpg678@gmail.com',
     phone: '(81) 9 9936-7426',
     address: 'Sítio Guabiraba, 64, Limoeiro - PE',
-    linkedinUrl: 'https://www.linkedin.com/in/jefferson-santos-a87b74277',
-    linkedinHandle: 'jefferson-santos',
-    githubUrl: 'https://github.com/jefferson-da-silva-santos',
-    githubHandle: 'jefferson-da-silva-santos',
+    // Links agora são um array dinâmico
+    links: [
+      {
+        label: 'Portfólio pessoal',
+        url: 'https://jeffersondev.netlify.app',
+        handle: 'Portfólio',
+        icon: 'bx-link-alt', // Ícone do Boxicons
+      },
+      {
+        label: 'LinkedIn',
+        url: 'https://www.linkedin.com/in/jefferson-santos-a87b74277',
+        handle: 'jefferson-santos',
+        icon: 'bxl-linkedin-square',
+      },
+      {
+        label: 'GitHub',
+        url: 'https://github.com/jefferson-da-silva-santos',
+        handle: 'jefferson-da-silva-santos',
+        icon: 'bxl-github',
+      },
+      // Adicione outros links aqui se necessário, como Twitter, etc.
+    ],
   },
-
+  // NOVOS CAMPOS PARA EDIÇÃO DE LEGENDAS
+  labels: {
+    personalData: 'Dados pessoais',
+    skills: 'Competências',
+    objective: 'Objetivo',
+    education: 'Formação',
+    experience: 'Experiência',
+  },
   skills: [
     { name: 'React', level: 4 },
     { name: 'Next.js', level: 4 },
@@ -40,7 +64,6 @@ const initialValues = {
     { name: 'UI / UX', level: 4 },
     { name: 'Figma', level: 4 },
   ],
-
   objective:
     'Atuar como desenvolvedor Full Stack, criando soluções completas, modernas e escaláveis, ou contribuindo especificamente no front-end ou back-end. Trabalho com boas práticas de arquitetura, testes e metodologias ágeis para entregar produtos de alta qualidade e impacto real. Disponível para início imediato.',
   education: [
@@ -52,7 +75,6 @@ const initialValues = {
         'Formação técnica em Desenvolvimento de Sistemas, trabalhando com desenvolvimento full stack, lógica, banco de dados, versionamento, UI/UX e práticas de programação moderna.',
     },
   ],
-
   experience: [
     {
       role: 'Desenvolvedor Junior',
@@ -125,49 +147,100 @@ const generateCurriculumHtml = (data, styles, font) => {
   `;
 };
 
+// Estilos inline básicos para os novos botões (pode ser movido para um arquivo CSS se preferir)
+const inlineStyles = {
+  skillItemRow: {
+    display: 'flex',
+    gap: '5px',
+    alignItems: 'center',
+    marginBottom: '5px',
+  },
+  skillMoveButton: {
+    padding: '5px',
+    border: 'none',
+    cursor: 'pointer',
+    backgroundColor: '#eee',
+    borderRadius: '4px',
+    flexShrink: 0,
+    lineHeight: '1',
+  },
+  skillNameField: {
+    flexGrow: 1,
+  },
+  removeButtonMargin: {
+    marginLeft: '5px',
+  },
+  linkItemGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gap: '10px',
+    alignItems: 'center',
+    marginBottom: '10px',
+    border: '1px solid #ccc',
+    padding: '10px',
+    borderRadius: '4px',
+  },
+  linkRemoveButton: {
+    padding: '5px 10px',
+    border: 'none',
+    cursor: 'pointer',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    borderRadius: '4px',
+    lineHeight: '1',
+    flexShrink: 0,
+    width: '100%',
+  },
+  linkFieldLabel: {
+    display: 'block',
+    fontSize: '0.8em',
+    marginBottom: '3px',
+    fontWeight: 'bold',
+  }
+};
+
 
 const CurriculumEditor = () => {
-  const {  themeObject, nextTheme, prevTheme } = useTheme();
+  const { themeObject, nextTheme, prevTheme } = useTheme();
   const { font, nextFont, prevFont } = useFont();
 
   const handleGeneratePdf = async (values, actions) => {
     actions.setSubmitting(true);
-    
+
     try {
-        const finalHtml = generateCurriculumHtml(values, themeObject.styles, font.link);
-        
-        const response = await fetch("http://localhost:3000/gerar-curriculo", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ htmlContent: finalHtml }),
-        });
+      const finalHtml = generateCurriculumHtml(values, themeObject.styles, font.link);
 
-        if (!response.ok) {
-             const errorText = await response.text();
-             throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
-        }
+      const response = await fetch('http://localhost:3000/gerar-curriculo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ htmlContent: finalHtml }),
+      });
 
-        // 3. Receber o blob (o PDF) e forçar o download
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = 'curriculo.pdf'; // O nome do arquivo definido no backend é 'curriculo.pdf'
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(downloadUrl);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
+      }
 
-        alert("✅ PDF gerado e download iniciado com sucesso!");
+      // 3. Receber o blob (o PDF) e forçar o download
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
 
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = 'curriculo.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      alert('✅ PDF gerado e download iniciado com sucesso!');
     } catch (error) {
-        console.error("❌ Erro ao gerar o PDF:", error);
-        alert(`Falha ao gerar o PDF. Detalhes: ${error.message}`);
+      console.error('❌ Erro ao gerar o PDF:', error);
+      alert(`Falha ao gerar o PDF. Detalhes: ${error.message}`);
     } finally {
-        actions.setSubmitting(false);
+      actions.setSubmitting(false);
     }
   };
 
@@ -175,7 +248,7 @@ const CurriculumEditor = () => {
     <div className="editor-container">
       <Formik
         initialValues={initialValues}
-        onSubmit={handleGeneratePdf} 
+        onSubmit={handleGeneratePdf}
       >
         {({ values, isSubmitting }) => (
           <>
@@ -184,43 +257,54 @@ const CurriculumEditor = () => {
               <div className="group-title">
                 <h2>Editor de Currículo</h2>
 
-               
-                <div className='group-buttons'>
-
-                  <div className='wrap'>
+                <div className="group-buttons">
+                  <div className="wrap">
                     <p>Selecione a Fonte:</p>
                     <div className="buttons">
                       <button disabled={isSubmitting} onClick={prevFont}>
-                        <i className='bx bx-chevrons-left' ></i>
+                        <i className="bx bx-chevrons-left"></i>
                       </button>
-                      <span className='text'>{font.font}</span>
+                      <span className="text">{font.font}</span>
                       <button disabled={isSubmitting} onClick={nextFont}>
-                        <i className='bx bx-chevrons-right'></i>
+                        <i className="bx bx-chevrons-right"></i>
                       </button>
                     </div>
                   </div>
 
-                  <div className='wrap'>
+                  <div className="wrap">
                     <p>Selecione o Tema:</p>
                     <div className="buttons">
                       <button disabled={isSubmitting} onClick={prevTheme}>
-                        <i className='bx bx-chevrons-left' ></i>
+                        <i className="bx bx-chevrons-left"></i>
                       </button>
-                      <span className='text'>{themeObject.theme}</span>
+                      <span className="text">{themeObject.theme}</span>
                       <button disabled={isSubmitting} onClick={nextTheme}>
-                        <i className='bx bx-chevrons-right'></i>
+                        <i className="bx bx-chevrons-right"></i>
                       </button>
                     </div>
                   </div>
-
-
                 </div>
               </div>
               <Form className="editor-form">
+                {/* 🌟 NOVA SEÇÃO: Edição de Legendas/Títulos */}
+                <h3>Editar Títulos de Seção 📝</h3>
+                <div className="input-group-section section-titulos">
+                  <label>Título de Objetivo:</label>
+                  <Field name="labels.objective" type="text" className="form-control" />
+                  <label>Título de Formação:</label>
+                  <Field name="labels.education" type="text" className="form-control" />
+                  <label>Título de Competências:</label>
+                  <Field name="labels.skills" type="text" className="form-control" />
+                  <label>Título de Experiência:</label>
+                  <Field name="labels.experience" type="text" className="form-control" />
+                  <label>Título de Dados Pessoais:</label>
+                  <Field name="labels.personalData" type="text" className="form-control" />
+                </div>
+                <hr />
 
                 {/* Seção 1: Dados Pessoais */}
                 <h3>Dados Pessoais</h3>
-                <div className="input-group-section">
+                <div className="input-group-section section-personal">
                   <label>Nome Principal:</label>
                   <Field name="personal.name" type="text" className="form-control" />
                   <label>Função Principal:</label>
@@ -230,32 +314,74 @@ const CurriculumEditor = () => {
                   <label>URL da Imagem:</label>
                   <Field name="personal.imageSrc" type="text" className="form-control" />
 
-                  <h4 className="sub-section-title">Contato</h4>
+                  <h4 className="sub-section-title">Contato Básico</h4>
                   <label>E-mail:</label>
                   <Field name="contact.email" type="email" className="form-control" />
                   <label>Telefone:</label>
                   <Field name="contact.phone" type="text" className="form-control" />
                   <label>Endereço:</label>
                   <Field name="contact.address" type="text" className="form-control" />
-                  <label>Portfolio URL:</label>
-                  <Field name="contact.portfolioUrl" type="url" className="form-control" />
-                  <label>LinkedIn URL:</label>
-                  <Field name="contact.linkedinUrl" type="url" className="form-control" />
-                  <label>GitHub URL:</label>
-                  <Field name="contact.githubUrl" type="url" className="form-control" />
+
+                  {/* 🌟 NOVA SEÇÃO: Links Dinâmicos */}
+                  <h4 className="sub-section-title">Links (Adicionar/Remover/Editar)</h4>
+                  <FieldArray name="contact.links">
+                    {({ push, remove }) => (
+                      <div className="links-array-section">
+                        {values.contact.links.map((link, index) => (
+                          <div key={index} style={inlineStyles.linkItemGrid}>
+                            <div>
+                               <label style={inlineStyles.linkFieldLabel}>Ícone (Classe bx-*):</label>
+                               <Field name={`contact.links.${index}.icon`} type="text" className="form-control" />
+                            </div>
+                            <div>
+                               <label style={inlineStyles.linkFieldLabel}>Rótulo/Nome:</label>
+                               <Field name={`contact.links.${index}.label`} type="text" className="form-control" />
+                            </div>
+                            <div>
+                               <label style={inlineStyles.linkFieldLabel}>Handle (Ex: @usuário):</label>
+                               <Field name={`contact.links.${index}.handle`} type="text" className="form-control" />
+                            </div>
+                            <div>
+                               <label style={inlineStyles.linkFieldLabel}>URL:</label>
+                               <Field name={`contact.links.${index}.url`} type="url" className="form-control" />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => remove(index)}
+                              style={inlineStyles.linkRemoveButton}
+                              title="Remover Link"
+                            >
+                              Remover Link{' '}
+                              <i className="bx bx-trash"></i>
+                            </button>
+                            <span /> {/* Espaço vazio para alinhar */}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => push({ label: '', url: '', handle: '', icon: 'bx-link' })}
+                        >
+                          <i className="bx bx-plus"></i>{' '}
+                          Adicionar Novo Link
+                        </button>
+                      </div>
+                    )}
+                  </FieldArray>
                 </div>
+                <hr />
 
                 {/* Seção 2: Objetivo */}
-                <h3>Objetivo</h3>
+                <h3 id="objective-editor">{values.labels.objective}</h3>
                 <Field name="objective" as="textarea" rows="4" className="form-control" />
+                <hr />
 
                 {/* Seção 3: Formação */}
-                <h3>Formação</h3>
+                <h3 id="education-editor">{values.labels.education}</h3>
                 <FieldArray name="education">
                   {({ push, remove }) => (
                     <div className="input-group-section">
                       {values.education.map((edu, index) => (
-                        <div className='formacao form-item-border' key={index}>
+                        <div className="formacao form-item-border" key={index}>
                           <label>Curso:</label>
                           <Field name={`education.${index}.course`} type="text" className="form-control" />
                           <label>Período:</label>
@@ -265,25 +391,51 @@ const CurriculumEditor = () => {
                           <label>Descrição:</label>
                           <Field name={`education.${index}.description`} as="textarea" rows="2" className="form-control" />
                           <button type="button" onClick={() => remove(index)} className="remove-button-margin">
-                            <i className="bx bx-trash"></i>  Remover Formação
+                             Remover Formação <i className="bx bx-trash"></i>
                           </button>
                         </div>
                       ))}
-                      <button type="button" onClick={() => push({ course: '', period: '', institution: '', description: '' })}>
+                      <button
+                        type="button"
+                        onClick={() => push({ course: '', period: '', institution: '', description: '' })}
+                      >
+                        <i className="bx bx-plus"></i>{' '}
                         Adicionar Formação
                       </button>
                     </div>
                   )}
                 </FieldArray>
+                <hr />
 
-                {/* Seção 4: Competências */}
-                <h3>Competências</h3>
+                {/* Seção 4: Competências (Com botões de mover) */}
+                <h3 id="skills-editor">{values.labels.skills}</h3>
                 <FieldArray name="skills">
-                  {({ push, remove }) => (
+                  {({ push, remove, swap }) => (
                     <div className="input-group-section">
                       {values.skills.map((skill, index) => (
-                        <div key={index} className="skill-item-row">
-                          <Field name={`skills.${index}.name`} type="text" className="form-control skill-name-field" />
+                        <div key={index} style={inlineStyles.skillItemRow}>
+                          {/* Botão Mover para Cima */}
+                          <button
+                            type="button"
+                            onClick={() => swap(index, index - 1)}
+                            disabled={index === 0}
+                            style={inlineStyles.skillMoveButton}
+                            title="Mover para Cima"
+                          >
+                            <i className="bx bx-up-arrow-alt"></i>
+                          </button>
+                          {/* Botão Mover para Baixo */}
+                          <button
+                            type="button"
+                            onClick={() => swap(index, index + 1)}
+                            disabled={index === values.skills.length - 1}
+                            style={inlineStyles.skillMoveButton}
+                            title="Mover para Baixo"
+                          >
+                            <i className="bx bx-down-arrow-alt"></i>
+                          </button>
+
+                          <Field name={`skills.${index}.name`} type="text" className="form-control" style={inlineStyles.skillNameField} />
                           <Field name={`skills.${index}.level`} as="select" className="form-control skill-level-field">
                             <option value={1}>1</option>
                             <option value={2}>2</option>
@@ -291,25 +443,26 @@ const CurriculumEditor = () => {
                             <option value={4}>4</option>
                             <option value={5}>5</option>
                           </Field>
-                          <button className="remove-button-margin" type="button" onClick={() => remove(index)}>
+                          <button className="remove-button-margin" type="button" onClick={() => remove(index)} style={inlineStyles.skillMoveButton} title="Remover Competência">
                             <i className="bx bx-trash"></i>
                           </button>
                         </div>
                       ))}
                       <button type="button" onClick={() => push({ name: '', level: 3 })}>
-                        Adicionar Competência
+                        <i className="bx bx-plus"></i>{' '}Adicionar Competência
                       </button>
                     </div>
                   )}
                 </FieldArray>
+                <hr />
 
                 {/* Seção 5: Experiência */}
-                <h3>Experiência</h3>
+                <h3 id="experience-editor">{values.labels.experience}</h3>
                 <FieldArray name="experience">
                   {({ push, remove }) => (
                     <div className="input-group-section">
                       {values.experience.map((exp, expIndex) => (
-                        <div className='experiencia form-item-double-border' key={expIndex}>
+                        <div className="experiencia form-item-double-border" key={expIndex}>
                           <h4>Experiência #{expIndex + 1}</h4>
                           <label>Cargo:</label>
                           <Field name={`experience.${expIndex}.role`} type="text" className="form-control" />
@@ -323,7 +476,7 @@ const CurriculumEditor = () => {
                           <h5>Responsabilidades</h5>
                           <FieldArray name={`experience.${expIndex}.responsibilities`}>
                             {({ push: pushResp, remove: removeResp }) => (
-                              <div className='responsas responsa-list-indent'>
+                              <div className="responsas responsa-list-indent">
                                 {exp.responsibilities.map((resp, respIndex) => (
                                   <div key={respIndex} className="responsa-item-row">
                                     <Field name={`experience.${expIndex}.responsibilities.${respIndex}`} as="textarea" rows="2" className="form-control responsa-field" />
@@ -339,19 +492,25 @@ const CurriculumEditor = () => {
                             )}
                           </FieldArray>
                           <button type="button" onClick={() => remove(expIndex)} className="remove-experience-button">
-                           <i className="bx bx-trash"></i> Remover Experiência
+                            Remover Experiência{' '}<i className="bx bx-trash"></i>
                           </button>
                         </div>
                       ))}
-                      <button type="button" onClick={() => push({ role: '', period: '', company: '', location: '', responsibilities: [''] })}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          push({ role: '', period: '', company: '', location: '', responsibilities: [''] })
+                        }
+                      >
+                        <i className="bx bx-plus"></i>{' '}
                         Adicionar Experiência
                       </button>
                     </div>
                   )}
                 </FieldArray>
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmitting}
                   className={`submit-button ${isSubmitting ? 'submitting' : ''}`}
                 >

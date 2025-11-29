@@ -1,31 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@200;300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&family=Mukta:wght@200;300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Mukta:wght@200;300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&family=Mukta:wght@200;300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap");
 
 * {
   margin: 0;
@@ -36,8 +35,9 @@
 input,
 textarea,
 select {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   padding: 8px;
+  width: 100%;
   border-radius: 5px;
   outline: none;
   border: 1px solid #ccc;
@@ -64,30 +64,22 @@ select {
   border-radius: 5px;
   padding: 8px 10px;
   border: none;
-  background-image: linear-gradient(
-    to left,
-    rgb(0, 0, 0),
-    rgb(52, 52, 52)
-  );
+  background-image: linear-gradient(to left, rgb(0, 0, 0), rgb(52, 52, 52));
   color: white;
 }
 
 .group-title .text {
-    border-radius: 5px;
+  border-radius: 5px;
   padding: 8px 10px;
   border: none;
-  background-image: linear-gradient(
-    to left,
-    rgb(0, 0, 0),
-    rgb(52, 52, 52)
-  );
+  background-image: linear-gradient(to left, rgb(0, 0, 0), rgb(52, 52, 52));
   color: white;
 }
 
 .group-buttons {
   padding: 1rem;
   border-radius: 5px;
-  background-color: #ecebeb;
+  background-color: rgb(0 40 75 / 3%);
   display: flex;
   gap: 10px;
   width: 100%;
@@ -106,11 +98,7 @@ select {
 }
 
 .group-title button:hover {
-  background-image: linear-gradient(
-    to left,
-    rgb(52, 52, 52),
-    rgb(0, 0, 0)
-  );
+  background-image: linear-gradient(to left, rgb(52, 52, 52), rgb(0, 0, 0));
 }
 
 button {
@@ -139,11 +127,12 @@ textarea {
  * --------------------------------
  */
 .editor-container {
+  overflow: hidden;
   display: flex;
-  min-height: 100vh;
   padding: 20px;
   gap: 20px;
-  font-family: 'Inter', sans-serif;
+  height: 100vh;
+  font-family: "Inter", sans-serif;
 }
 
 /*
@@ -153,7 +142,8 @@ textarea {
  */
 .editor-form-column {
   flex: 1;
-  max-width: 400px;
+  overflow-y: scroll;
+  max-width: 40rem;
   border-right: 1px solid #ccc;
   padding-right: 20px;
 }
@@ -165,12 +155,12 @@ textarea {
 }
 
 .group-title {
-    display: flex;
-    flex-direction: column;
-    align-items: baseline;
-    justify-content: flex-start;
-    gap: .5rem;
-    margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 /*
@@ -188,6 +178,7 @@ textarea {
   flex-direction: column;
   gap: 10px; /* Espaço entre os campos de um grupo */
   border: 1px solid #eee;
+  background-color: rgb(0 40 75 / 3%);
   padding: 10px;
 }
 
@@ -287,6 +278,6 @@ textarea {
 
 .preview-page-mockup {
   width: 210mm; /* Largura A4 */
-  min-height: 297mm; /* Altura A4 */
+  min-height: 68.5rem; /* Altura A4 */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }

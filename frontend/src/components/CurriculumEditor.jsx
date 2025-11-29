@@ -127,8 +127,8 @@ const generateCurriculumHtml = (data, styles, font) => {
 
 
 const CurriculumEditor = () => {
-  const { toggleTheme, themeObject } = useTheme();
-  const { font, toggleFont } = useFont();
+  const {  themeObject, nextTheme, prevTheme } = useTheme();
+  const { font, nextFont, prevFont } = useFont();
 
   const handleGeneratePdf = async (values, actions) => {
     actions.setSubmitting(true);
@@ -183,13 +183,37 @@ const CurriculumEditor = () => {
             <div className="editor-form-column">
               <div className="group-title">
                 <h2>Editor de Currículo</h2>
+
+               
                 <div className='group-buttons'>
-                  <button type="button" onClick={toggleTheme} disabled={isSubmitting}>
-                    {themeObject.theme}{" "}<i className="bx bx-palette"></i>
-                  </button>
-                  <button type="button" onClick={toggleFont} disabled={isSubmitting}>
-                    {font.font}{" "}<i className="bx bx-text"></i>
-                  </button>
+
+                  <div className='wrap'>
+                    <p>Selecione a Fonte:</p>
+                    <div className="buttons">
+                      <button disabled={isSubmitting} onClick={prevFont}>
+                        <i className='bx bx-chevrons-left' ></i>
+                      </button>
+                      <span className='text'>{font.font}</span>
+                      <button disabled={isSubmitting} onClick={nextFont}>
+                        <i className='bx bx-chevrons-right'></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className='wrap'>
+                    <p>Selecione o Tema:</p>
+                    <div className="buttons">
+                      <button disabled={isSubmitting} onClick={prevTheme}>
+                        <i className='bx bx-chevrons-left' ></i>
+                      </button>
+                      <span className='text'>{themeObject.theme}</span>
+                      <button disabled={isSubmitting} onClick={nextTheme}>
+                        <i className='bx bx-chevrons-right'></i>
+                      </button>
+                    </div>
+                  </div>
+
+
                 </div>
               </div>
               <Form className="editor-form">
@@ -241,7 +265,7 @@ const CurriculumEditor = () => {
                           <label>Descrição:</label>
                           <Field name={`education.${index}.description`} as="textarea" rows="2" className="form-control" />
                           <button type="button" onClick={() => remove(index)} className="remove-button-margin">
-                            Remover Formação
+                            <i className="bx bx-trash"></i>  Remover Formação
                           </button>
                         </div>
                       ))}
@@ -267,8 +291,8 @@ const CurriculumEditor = () => {
                             <option value={4}>4</option>
                             <option value={5}>5</option>
                           </Field>
-                          <button type="button" onClick={() => remove(index)}>
-                            X
+                          <button className="remove-button-margin" type="button" onClick={() => remove(index)}>
+                            <i className="bx bx-trash"></i>
                           </button>
                         </div>
                       ))}
@@ -315,7 +339,7 @@ const CurriculumEditor = () => {
                             )}
                           </FieldArray>
                           <button type="button" onClick={() => remove(expIndex)} className="remove-experience-button">
-                            Remover Experiência
+                           <i className="bx bx-trash"></i> Remover Experiência
                           </button>
                         </div>
                       ))}

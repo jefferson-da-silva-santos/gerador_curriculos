@@ -50,6 +50,15 @@ select {
   align-items: center;
 }
 
+.buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.buttons i {
+  font-size: 1rem;
+}
+
 .group-title button {
   cursor: pointer;
   border-radius: 5px;
@@ -63,10 +72,37 @@ select {
   color: white;
 }
 
+.group-title .text {
+    border-radius: 5px;
+  padding: 8px 10px;
+  border: none;
+  background-image: linear-gradient(
+    to left,
+    rgb(0, 0, 0),
+    rgb(52, 52, 52)
+  );
+  color: white;
+}
+
 .group-buttons {
+  padding: 1rem;
+  border-radius: 5px;
+  background-color: #ecebeb;
   display: flex;
   gap: 10px;
-  
+  width: 100%;
+  justify-content: space-between;
+}
+
+.remove-button-margin {
+  background-color: rgb(255, 180, 180);
+  color: red;
+}
+
+.group-buttons .wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .group-title button:hover {
@@ -129,7 +165,12 @@ textarea {
 }
 
 .group-title {
-  /* Se precisar de estilo para o título do editor e o botão de tema */
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: .5rem;
+    margin-bottom: 1rem;
 }
 
 /*

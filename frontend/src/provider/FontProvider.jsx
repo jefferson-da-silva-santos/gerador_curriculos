@@ -11,8 +11,20 @@ const FontProvider = ({ children }) => {
     setFont(fontes[nextFontIndex]);
   }
 
+  function nextFont() {
+    const currentFontIndex = fontes.findIndex((f) => f.font === font.font);
+    const nextFontIndex = (currentFontIndex + 1) % fontes.length;
+    setFont(fontes[nextFontIndex]);
+  }
+
+  function prevFont() {
+    const currentFontIndex = fontes.findIndex((f) => f.font === font.font);
+    const prevFontIndex = (currentFontIndex - 1 + fontes.length) % fontes.length;
+    setFont(fontes[prevFontIndex]);
+  }
+
   return (
-    <FontContext.Provider value={{ font, toggleFont }}>
+    <FontContext.Provider value={{ font, toggleFont, nextFont, prevFont }}>
       {children}{" "}
     </FontContext.Provider>
   );

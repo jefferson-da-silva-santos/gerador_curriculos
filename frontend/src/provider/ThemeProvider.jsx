@@ -134,11 +134,25 @@ const ThemeProvider = ({ children }) => {
     setThemeObject(themes[nextThemeIndex]);
   };
 
+  function nextTheme() {
+    const currentThemeIndex = themes.findIndex((t) => t.theme === themeObject.theme);
+    const nextThemeIndex = (currentThemeIndex + 1) % themes.length;
+    setThemeObject(themes[nextThemeIndex]);
+  }
+
+  function prevTheme() {
+    const currentThemeIndex = themes.findIndex((t) => t.theme === themeObject.theme);
+    const prevThemeIndex = (currentThemeIndex - 1 + themes.length) % themes.length;
+    setThemeObject(themes[prevThemeIndex]);
+  }
+
   return (
     <ThemeContext.Provider
       value={{
         themeObject,
         toggleTheme,
+        nextTheme,
+        prevTheme
       }}
     >
       {children}{" "}

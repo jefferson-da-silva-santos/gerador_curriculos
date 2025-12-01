@@ -169,14 +169,12 @@ textarea {
  * --------------------------------
  */
 .form-control {
-  /* Classe que você já estava usando para inputs/textareas */
-  /* Adicione aqui estilos básicos como padding, border, etc. se necessário */
 }
 
 .input-group-section {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Espaço entre os campos de um grupo */
+  gap: 10px; 
   border: 1px solid #eee;
   background-color: rgb(0 40 75 / 3%);
   padding: 10px;

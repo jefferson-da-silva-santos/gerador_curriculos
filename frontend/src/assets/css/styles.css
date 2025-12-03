@@ -59,10 +59,20 @@ select {
   font-size: 1rem;
 }
 
+.button-move {
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  background-color: #eee;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
 .group-title button {
   cursor: pointer;
   border-radius: 5px;
-  padding: 8px 10px;
+  padding: 10px;
   border: none;
   background-image: linear-gradient(to left, rgb(0, 0, 0), rgb(52, 52, 52));
   color: white;
@@ -200,9 +210,6 @@ textarea {
   padding-bottom: 15px;
 }
 
-.remove-button-margin {
-  margin-top: 5px;
-}
 
 /* Competências */
 .skill-item-row {
@@ -218,6 +225,37 @@ textarea {
 
 .skill-level-field {
   flex: 1;
+  width: 4rem;
+}
+
+.btn-delete {
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #ffc9cf;
+  color: #dc3545;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.btn-add-link {
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #9ad0ff;
+  color: #2045a2;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.btn-del {
+  padding: 10px;
+  color: #dc3545;
+  background-color: #ffc9cf;
 }
 
 /* Responsabilidades da Experiência */

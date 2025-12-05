@@ -1,5 +1,11 @@
 {
   "dependencies": {
     "boxicons": "^2.1.4"
+  },
+  "scripts": {
+    "start": "concurrently \"cd backend && npm run start\" \"cd frontend && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

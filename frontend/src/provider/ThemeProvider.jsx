@@ -123,7 +123,9 @@ const getThemes = (font) => [
 
 const ThemeProvider = ({ children }) => {
   const { font } = useFont();
-  const themes = getThemes(font);
+  console.log("Fonte: " + font);
+  
+  const themes = getThemes(font.styles);
   const [themeObject, setThemeObject] = useState(themes[0]);
   
   const toggleTheme = () => {

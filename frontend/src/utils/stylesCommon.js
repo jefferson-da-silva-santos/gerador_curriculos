@@ -1,4 +1,5 @@
-export const stylesCommon = (font) => {
+export const stylesCommon = (fontStyles) => {
+    
     return (
         `
     /* Reset + print-friendliness */
@@ -22,7 +23,7 @@ export const stylesCommon = (font) => {
     }
 
     body {
-        ${font}
+        ${fontStyles}
     }
 
     h1, h3, h4, h5, h6 {

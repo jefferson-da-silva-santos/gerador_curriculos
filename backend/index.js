@@ -35,7 +35,8 @@ const launchBrowser = async () => {
  */
 app.post("/gerar-curriculo", async (req, res) => {
   const { htmlContent } = req.body;
-
+  console.log(htmlContent);
+  
   if (!htmlContent) {
     return res.status(400).send("Conteúdo HTML é obrigatório.");
   }

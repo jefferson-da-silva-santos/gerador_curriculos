@@ -22,6 +22,7 @@ const FontProvider = ({ children }) => {
     const prevFontIndex = (currentFontIndex - 1 + fontes.length) % fontes.length;
     setFont(fontes[prevFontIndex]);
   }
+  
 
   return (
     <FontContext.Provider value={{ font, toggleFont, nextFont, prevFont }}>

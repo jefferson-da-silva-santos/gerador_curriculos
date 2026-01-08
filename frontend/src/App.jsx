@@ -1,20 +1,16 @@
-// App.js
-import React from "react";
 import CurriculumEditor from "./components/CurriculumEditor";
 import ThemeProvider from "./provider/ThemeProvider";
 import FontProvider from "./provider/FontProvider";
-// import "boxicons/css/boxicons.min.css";
 
 function App() {
   return (
     <div className="App">
-      <ThemeProvider>
-        <FontProvider>
+      <FontProvider>
+        <ThemeProvider>
           <CurriculumEditor />
-        </FontProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </FontProvider>
     </div>
   );
 }
-
 export default App;

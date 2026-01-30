@@ -1,32 +1,23 @@
 import express from "express";
-import fs from "fs";
 import path from "path";
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer";
 import cors from "cors";
 const app = express();
 
 app.use(cors());
-// Aumentamos o limite para garantir que o HTML completo seja aceito no body
+
 app.use(express.json({ limit: "50mb" }));
 
-// Mapa para armazenar o HTML do currículo temporariamente (chave: id, valor: html)
-// Em produção, você usaria um sistema de cache ou banco de dados
 const curriculumCache = new Map();
 
 app.use("/public", express.static(path.join(process.cwd(), "public")));
-
-// --- CONFIGURAÇÃO PUPPETEER/CHROME ---
-const chromePath =
-  "C:/Users/jeffr/.codeium/ws-browser/chromium-1155/chrome-win/chrome.exe";
-
-// Função utilitária para lançar o navegador
 const launchBrowser = async () => {
   return puppeteer.launch({
     headless: true,
-    executablePath: chromePath,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 };
+
 
 /**
  * Rota para receber o HTML final do frontend, armazená-lo e gerar o PDF.

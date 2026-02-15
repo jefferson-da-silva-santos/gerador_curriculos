@@ -13,7 +13,7 @@ export const stylesCommon = (fontStyles) => {
         padding: 0;
         box-sizing: border-box;
         list-style: none;
-        font-size: 0.85rem;
+        font-size: 0.95rem;
     }
 
     html,

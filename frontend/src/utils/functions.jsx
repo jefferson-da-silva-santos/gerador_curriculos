@@ -1,5 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { initialValues } from "./consts";
+import { showNotification } from "./notyf";
 
 const generateCurriculumHtml = (data, styles, font) => {
   const curriculumBodyHtml = renderToString(
@@ -39,7 +40,8 @@ export const getSavedValues = () => {
   if (saved) {
     try {
       return JSON.parse(saved);
-    } catch (e) {
+    } catch (error) {
+      console.error("Erro ao analisar os dados salvos:", error);
       return initialValues;
     }
   }
@@ -47,7 +49,7 @@ export const getSavedValues = () => {
 };
 
 
-export const handleGeneratePdf = async (values, actions) => {
+export const handleGeneratePdf = async (values, actions, themeObject, font) => {
   actions.setSubmitting(true);
 
   try {
@@ -81,10 +83,10 @@ export const handleGeneratePdf = async (values, actions) => {
     a.remove();
     window.URL.revokeObjectURL(downloadUrl);
 
-    alert("✅ PDF gerado e download iniciado com sucesso!");
+    showNotification("success", "PDF gerado com sucesso!");
   } catch (error) {
     console.error("❌ Erro ao gerar o PDF:", error);
-    alert(`Falha ao gerar o PDF. Detalhes: ${error.message}`);
+    showNotification("error", `Falha ao gerar o PDF.`);
   } finally {
     actions.setSubmitting(false);
   }

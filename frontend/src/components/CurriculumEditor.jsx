@@ -3,6 +3,7 @@ import CurriculumPreview from "./CurriculumPreview";
 import useTheme from "../hooks/useTheme";
 import { renderToString } from "react-dom/server";
 import useFont from "../hooks/useFont";
+import { showNotification } from "../utils/notyf";
 
 const ICON_OPTIONS = [
   { id: 1, name: "Link Padrão", class: "bx-link-alt" },
@@ -234,10 +235,10 @@ const CurriculumEditor = () => {
       a.remove();
       window.URL.revokeObjectURL(downloadUrl);
 
-      alert("✅ PDF gerado e download iniciado com sucesso!");
+      showNotification("success", "PDF gerado e download iniciado com sucesso!");
     } catch (error) {
       console.error("❌ Erro ao gerar o PDF:", error);
-      alert(`Falha ao gerar o PDF. Detalhes: ${error.message}`);
+      showNotification("error", `Falha ao gerar o PDF. Detalhes: ${error.message}`);
     } finally {
       actions.setSubmitting(false);
     }
@@ -690,15 +691,17 @@ const CurriculumEditor = () => {
                   )}
                 </FieldArray>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`submit-button ${
-                    isSubmitting ? "submitting" : ""
-                  }`}
-                >
-                  {isSubmitting ? "Gerando PDF..." : "Gerar e Baixar PDF"}
-                </button>
+                <div className="submit-button-container">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`submit-button ${
+                      isSubmitting ? "submitting" : ""
+                    }`}
+                  >
+                    {isSubmitting ? "Gerando PDF..." : "Gerar e Baixar PDF"}
+                  </button>
+                </div>
               </Form>
             </div>
 

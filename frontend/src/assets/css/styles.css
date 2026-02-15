@@ -30,6 +30,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: .85rem;
 }
 
 input,
@@ -151,6 +152,7 @@ textarea {
  * --------------------------------
  */
 .editor-form-column {
+  position: relative;
   flex: 1;
   overflow-y: scroll;
   max-width: 40rem;
@@ -284,7 +286,18 @@ textarea {
  * Botão de Submissão (Gerar PDF)
  * --------------------------------
  */
+.submit-button-container {
+  width: 100%;
+  position: sticky;
+  bottom: 0;
+  padding: 10px 0;
+  background-color: #fff;
+  box-shadow: -1px -5px 5px rgb(0 0 0 / 16%);
+}
+
+
 .submit-button {
+  width: 100%;
   padding: 10px;
   background-color: rgb(0, 40, 75);
   color: white;
@@ -314,6 +327,6 @@ textarea {
 
 .preview-page-mockup {
   width: 210mm; /* Largura A4 */
-  min-height: 68.5rem; /* Altura A4 */
+  min-height: 76rem; /* Altura A4 */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }

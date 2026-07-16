@@ -331,7 +331,6 @@ html, body, #root {
 /* ── Menu mobile (hamburguer) ─────────────────────────────── */
 .topbar__menu-btn {
   display: none;
-  position: static;       /* nunca absolute aqui */
   width: 34px;
   height: 34px;
   border-radius: var(--radius-md);
@@ -343,17 +342,8 @@ html, body, #root {
   justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
-  line-height: 1;
 }
 
-.topbar__menu-btn i {
-  font-size: 18px;
-  line-height: 1;
-}
-
-@media (max-width: 700px) {
-  .topbar__menu-btn { display: flex; }
-}
 .topbar__menu-btn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
@@ -859,6 +849,29 @@ html, body, #root {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
   transform-origin: top center;
   flex-shrink: 0;
+
+  /* A folha do currículo deve sempre se comportar como papel impresso,
+     com a paleta clara do próprio template — nunca deve herdar o tema
+     escuro da interface do editor. Como as CSS custom properties abaixo
+     cascateiam a partir de [data-theme] no <html>, resetamos os valores
+     aqui para que qualquer `var(--text-secondary)` etc. usado dentro do
+     CSS gerado pelos templates (getStyles) sempre resolva pro tom claro,
+     independente do tema ativo no restante do app. */
+  --bg-page:      #f4f3f0;
+  --bg-panel:     #ffffff;
+  --bg-panel-2:   #f8f7f5;
+  --bg-input:     #ffffff;
+  --bg-hover:     #f0eeeb;
+  --bg-active:    #e8e5e0;
+  --accent:        #4f46e5;
+  --accent-dim:    #eef2ff;
+  --accent-hover:  #4338ca;
+  --border:        #e2e0dc;
+  --border-strong: #c8c5bf;
+  --text-primary:   #1a1917;
+  --text-secondary: #6b6660;
+  --text-muted:     #9b9590;
+  --text-on-accent: #ffffff;
 }
 
 /* Conteúdo do currículo dentro da prévia: sempre em texto escuro

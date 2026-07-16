@@ -1,5 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "rhel-openssl-3.0.x" é o binário certo pro runtime Node.js da Vercel
+  // (Amazon Linux). Sem isso, o Prisma Client gerado localmente (na sua
+  // engine nativa) não roda no ambiente da Vercel e o deploy falha em
+  // runtime com um erro de engine incompatível.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

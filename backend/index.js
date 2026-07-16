@@ -1,10 +1,11 @@
+import "./config/env.js"; // valida as env vars antes de qualquer outra coisa
 import express from "express";
-import path from "path";
-import puppeteer from "puppeteer";
+import helmet from "helmet";
 import cors from "cors";
-import crypto from "crypto";
 import cloudinary, { assertCloudinaryConfigured } from "./config/cloudinary.js";
 import { uploadImage } from "./middleware/uploadMiddleware.js";
+import { uploadLimiter, pdfLimiter } from "./middleware/rateLimit.js";
+import { launchBrowser } from "./config/chromium.js";
 import prisma from "./config/prisma.js";
 import { paymentRouter } from "./routes/payment.js";
 
@@ -12,24 +13,35 @@ import { paymentRouter } from "./routes/payment.js";
 const PORT = Number(process.env.PORT) || 3000;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "http://localhost:5173";
 const MAX_BODY_SIZE = "2mb";
-const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes — auto-expire stale entries
+const IS_SERVERLESS = Boolean(process.env.VERCEL);
 
 /* ─── App ───────────────────────────────────────────────── */
 const app = express();
 
-/* ── Security headers ── */
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "no-referrer");
-  next();
-});
+// Necessário atrás do proxy da Vercel (e de qualquer proxy reverso em
+// geral) para que req.ip reflita o IP real do cliente, não o do proxy —
+// sem isso, o rate limiting por IP fica inútil (todo mundo cai no mesmo IP).
+app.set("trust proxy", 1);
+
+/* ── Security headers (helmet cobre bem mais casos que os headers manuais
+     que existiam antes: CSP, HSTS, X-Content-Type-Options, etc.) ── */
+app.use(
+  helmet({
+    // O JSON da nossa própria API não serve HTML, então a CSP padrão do
+    // helmet não atrapalha aqui. O HTML do currículo em si é gerado à
+    // parte (generateCurriculumHtml, no frontend) e tem sua própria CSP —
+    // não passa por este servidor Express como página, só como string
+    // dentro do body de /gerar-curriculo.
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 /* ── CORS — whitelist only the frontend origin ── */
 app.use(
   cors({
     origin: (origin, cb) => {
-      // Allow same-origin / non-browser callers (Puppeteer, Mercado Pago webhook) and configured origin
+      // Permite chamadas sem Origin (server-to-server, ex: webhook do
+      // Mercado Pago) e a origem configurada do frontend.
       if (!origin || origin === ALLOWED_ORIGIN) return cb(null, true);
       cb(new Error(`CORS: origem não permitida — ${origin}`));
     },
@@ -43,15 +55,6 @@ app.use(express.json({ limit: MAX_BODY_SIZE }));
 /* ─── Rotas de pagamento (Pix / Mercado Pago) ───────────── */
 app.use(paymentRouter);
 
-/* ─── In-memory cache with TTL auto-cleanup ─────────────── */
-const curriculumCache = new Map();
-
-function cacheSet(key, value) {
-  curriculumCache.set(key, value);
-  // Auto-remove after TTL to prevent memory leaks
-  setTimeout(() => curriculumCache.delete(key), CACHE_TTL_MS);
-}
-
 /* ─── Input validation ──────────────────────────────────── */
 function validateHtml(html) {
   if (typeof html !== "string") return "htmlContent deve ser uma string.";
@@ -60,35 +63,11 @@ function validateHtml(html) {
   return null;
 }
 
-/* ─── Puppeteer launcher (singleton-ish) ────────────────── */
-const launchBrowser = () =>
-  puppeteer.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-    ],
-  });
-
-/* ─── Rate limiting (simple in-memory) ─────────────────── */
-const rateMap = new Map(); // ip → { count, resetAt }
-const RATE_WINDOW_MS = 60_000;
-const RATE_LIMIT_PDF = 10;    // 10 PDFs/minuto por IP
-const RATE_LIMIT_UPLOAD = 20; // 20 uploads de imagem/minuto por IP
-
-function checkRate(ip, bucket, limit) {
-  const key = `${bucket}:${ip}`;
-  const now = Date.now();
-  const entry = rateMap.get(key) ?? { count: 0, resetAt: now + RATE_WINDOW_MS };
-  if (now > entry.resetAt) {
-    entry.count = 0;
-    entry.resetAt = now + RATE_WINDOW_MS;
+class PaymentError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
   }
-  entry.count++;
-  rateMap.set(key, entry);
-  return entry.count <= limit;
 }
 
 /* ─── Routes ────────────────────────────────────────────── */
@@ -96,13 +75,7 @@ function checkRate(ip, bucket, limit) {
 /**
  * POST /upload-imagem
  */
-app.post("/upload-imagem", uploadImage.single("imagem"), async (req, res) => {
-  const clientIp = req.ip ?? "unknown";
-
-  if (!checkRate(clientIp, "upload", RATE_LIMIT_UPLOAD)) {
-    return res.status(429).json({ error: "Muitas requisições. Tente novamente em 1 minuto." });
-  }
-
+app.post("/upload-imagem", uploadLimiter, uploadImage.single("imagem"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Nenhuma imagem enviada (campo 'imagem')." });
   }
@@ -134,16 +107,16 @@ app.post("/upload-imagem", uploadImage.single("imagem"), async (req, res) => {
 
 /**
  * POST /gerar-curriculo
- * AGORA EXIGE um paymentId de um pagamento aprovado e ainda não utilizado.
+ * Exige um paymentId de um pagamento aprovado e ainda não utilizado.
  * Body: { htmlContent, paymentId }
+ *
+ * O HTML é injetado diretamente no Chromium via page.setContent() — não
+ * navegamos mais para uma rota própria do servidor (isso só funcionava
+ * localmente, com o Express e o Puppeteer no mesmo processo escutando em
+ * localhost; em serverless não há garantia de que seja a mesma instância,
+ * nem de porta acessível entre uma invocação e outra).
  */
-app.post("/gerar-curriculo", async (req, res) => {
-  const clientIp = req.ip ?? "unknown";
-
-  if (!checkRate(clientIp, "pdf", RATE_LIMIT_PDF)) {
-    return res.status(429).json({ error: "Muitas requisições. Tente novamente em 1 minuto." });
-  }
-
+app.post("/gerar-curriculo", pdfLimiter, async (req, res) => {
   const { htmlContent, paymentId } = req.body;
 
   const validationError = validateHtml(htmlContent);
@@ -180,34 +153,31 @@ app.post("/gerar-curriculo", async (req, res) => {
     return res.status(500).json({ error: "Falha ao validar o pagamento." });
   }
 
-  // Generate a cryptographically random ID (not guessable)
-  const curriculumId = crypto.randomBytes(16).toString("hex");
-  cacheSet(curriculumId, htmlContent);
-
   let browser;
   try {
     browser = await launchBrowser();
     const page = await browser.newPage();
 
+    // Mantém a allowlist de recursos externos — o HTML vem do cliente
+    // (é o próprio currículo dele), então mesmo executando dentro de um
+    // Chromium controlado, restringimos a quais domínios externos a
+    // página pode de fato buscar recursos (fontes, ícones, a foto do
+    // Cloudinary), reduzindo a superfície de SSRF via HTML malicioso.
     await page.setRequestInterception(true);
-    page.on("request", (req) => {
-      const type = req.resourceType();
-      const url = req.url();
+    page.on("request", (interceptedReq) => {
+      const type = interceptedReq.resourceType();
+      const url = interceptedReq.url();
       const ALLOWED_HOSTS = [
-        "localhost",
         "fonts.googleapis.com",
         "fonts.gstatic.com",
         "unpkg.com",
         "res.cloudinary.com",
       ];
-      const isAllowed =
-        type === "document" ||
-        ALLOWED_HOSTS.some((h) => url.includes(h));
-      isAllowed ? req.continue() : req.abort();
+      const isAllowed = type === "document" || ALLOWED_HOSTS.some((h) => url.includes(h));
+      isAllowed ? interceptedReq.continue() : interceptedReq.abort();
     });
 
-    const pageUrl = `http://localhost:${PORT}/curriculo/${curriculumId}`;
-    await page.goto(pageUrl, { waitUntil: "networkidle0", timeout: 30_000 });
+    await page.setContent(htmlContent, { waitUntil: "networkidle0", timeout: 30_000 });
 
     const pdf = await page.pdf({
       format: "A4",
@@ -225,40 +195,11 @@ app.post("/gerar-curriculo", async (req, res) => {
   } catch (err) {
     console.error("Erro ao gerar PDF:", err.message);
     // Se falhou de fato ao gerar, devolve o "crédito" do pagamento
-    await prisma.payment.update({ where: { id: paymentId }, data: { used: false } }).catch(() => {});
+    await prisma.payment.update({ where: { id: paymentId }, data: { used: false } }).catch(() => { });
     return res.status(500).json({ error: "Falha interna ao gerar o PDF." });
   } finally {
-    browser?.close();
-    curriculumCache.delete(curriculumId);
+    await browser?.close();
   }
-});
-
-class PaymentError extends Error {
-  constructor(statusCode, message) {
-    super(message);
-    this.statusCode = statusCode;
-  }
-}
-
-/**
- * GET /curriculo/:id
- */
-app.get("/curriculo/:id", (req, res) => {
-  const { hostname } = req;
-  if (hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "::1") {
-    return res.status(403).send("Proibido.");
-  }
-
-  const { id } = req.params;
-  if (!/^[0-9a-f]{32}$/.test(id)) {
-    return res.status(400).send("ID inválido.");
-  }
-
-  const html = curriculumCache.get(id);
-  if (!html) return res.status(404).send("Currículo não encontrado ou expirado.");
-
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  return res.send(html);
 });
 
 /* ─── Error handler ─────────────────────────────────────── */
@@ -274,6 +215,13 @@ app.use((err, _req, res, _next) => {
 });
 
 /* ─── Start ─────────────────────────────────────────────── */
-app.listen(PORT, () =>
-  console.log(`🔥 Servidor rodando em http://localhost:${PORT}`)
-);
+// Na Vercel, o runtime de Node importa `app` e chama ele mesmo como
+// handler a cada requisição — chamar `.listen()` ali não é necessário
+// (nem funcionaria da forma tradicional). Localmente, continua igual.
+if (!IS_SERVERLESS) {
+  app.listen(PORT, () =>
+    console.log(`🔥 Servidor rodando em http://localhost:${PORT}`)
+  );
+}
+
+export default app;

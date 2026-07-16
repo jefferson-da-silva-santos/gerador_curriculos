@@ -1,49 +1,34 @@
 import { Router } from "express";
 import crypto from "crypto";
+import { z } from "zod";
 import prisma from "../config/prisma.js";
 import { mpPaymentClient, assertMercadoPagoConfigured } from "../config/mercadopago.js";
+import { paymentLimiter } from "../middleware/rateLimit.js";
 
 export const paymentRouter = Router();
 
 const PAYMENT_AMOUNT = Number(process.env.PAYMENT_AMOUNT || 5.0);
 const PIX_EXPIRATION_MINUTES = 30;
 
-/* ─── Rate limiting simples (reaproveita o padrão do server.js) ──────── */
-const rateMap = new Map();
-const RATE_WINDOW_MS = 60_000;
-const RATE_LIMIT_PAYMENT = 15; // 15 tentativas/minuto por IP
-
-function checkRate(ip, bucket, limit) {
-  const key = `${bucket}:${ip}`;
-  const now = Date.now();
-  const entry = rateMap.get(key) ?? { count: 0, resetAt: now + RATE_WINDOW_MS };
-  if (now > entry.resetAt) {
-    entry.count = 0;
-    entry.resetAt = now + RATE_WINDOW_MS;
-  }
-  entry.count++;
-  rateMap.set(key, entry);
-  return entry.count <= limit;
-}
+const createPaymentSchema = z.object({
+  email: z.string().email().optional(),
+});
 
 /**
  * POST /pagamento/criar
  * Cria uma cobrança Pix no Mercado Pago e um registro "pending" no banco.
  * Body: { email?: string }
  */
-paymentRouter.post("/pagamento/criar", async (req, res) => {
-  const clientIp = req.ip ?? "unknown";
-  if (!checkRate(clientIp, "criar-pagamento", RATE_LIMIT_PAYMENT)) {
-    return res.status(429).json({ error: "Muitas tentativas. Aguarde 1 minuto." });
+paymentRouter.post("/pagamento/criar", paymentLimiter, async (req, res) => {
+  const parsed = createPaymentSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({ error: "E-mail inválido." });
   }
 
   try {
     assertMercadoPagoConfigured();
 
-    const payerEmail =
-      typeof req.body?.email === "string" && /\S+@\S+\.\S+/.test(req.body.email)
-        ? req.body.email
-        : "cliente@geradorcurriculos.com"; // fallback exigido pela API do MP
+    const payerEmail = parsed.data.email ?? "cliente@geradorcurriculos.com"; // fallback exigido pela API do MP
 
     // 1) Cria o registro "pending" primeiro, para termos um ID interno
     //    que vai como external_reference na cobrança do Mercado Pago.
@@ -64,7 +49,7 @@ paymentRouter.post("/pagamento/criar", async (req, res) => {
         payment_method_id: "pix",
         payer: { email: payerEmail },
         external_reference: payment.id,
-        notification_url: process.env.MERCADOPAGO_WEBHOOK_URL, // ex: https://seu-dominio.com/pagamento/webhook
+        notification_url: process.env.MERCADOPAGO_WEBHOOK_URL,
         date_of_expiration: new Date(
           Date.now() + PIX_EXPIRATION_MINUTES * 60_000
         ).toISOString(),
@@ -103,6 +88,11 @@ paymentRouter.post("/pagamento/criar", async (req, res) => {
  * Usado pelo frontend para fazer polling até o pagamento ser aprovado.
  */
 paymentRouter.get("/pagamento/status/:id", async (req, res) => {
+  // cuid — evita consultas com IDs em formato claramente inválido
+  if (!/^[a-z0-9]{20,32}$/i.test(req.params.id)) {
+    return res.status(400).json({ error: "ID inválido." });
+  }
+
   try {
     const payment = await prisma.payment.findUnique({
       where: { id: req.params.id },
@@ -141,7 +131,7 @@ paymentRouter.get("/pagamento/status/:id", async (req, res) => {
  */
 paymentRouter.post("/pagamento/webhook", async (req, res) => {
   try {
-    verifyMercadoPagoSignature(req); // lança erro se a assinatura for inválida
+    verifyMercadoPagoSignature(req); // lança erro se a assinatura for inválida/ausente
 
     const paymentIdFromMP = req.body?.data?.id ?? req.query?.id;
     if (!paymentIdFromMP) {
@@ -170,23 +160,44 @@ paymentRouter.post("/pagamento/webhook", async (req, res) => {
 
     return res.status(200).send("OK");
   } catch (err) {
+    // Assinatura inválida/ausente: rejeita de verdade (não é erro "nosso"
+    // interno, é uma chamada que não conseguimos confirmar que veio do MP).
+    if (err instanceof InvalidSignatureError) {
+      console.warn("Webhook rejeitado — assinatura inválida ou ausente:", err.message);
+      return res.status(401).send("Assinatura inválida.");
+    }
+
     console.error("Erro no webhook do Mercado Pago:", err.message);
-    // Sempre 200 para o MP não ficar reenviando o mesmo webhook indefinidamente
-    // por um erro nosso — mas o erro já ficou logado acima para investigação.
+    // Para erros internos genuínos (não relacionados à autenticidade da
+    // chamada), respondemos 200 para o MP não ficar reenviando indefinidamente
+    // — o erro já ficou logado acima para investigação.
     return res.status(200).send("OK (com erro interno registrado)");
   }
 });
 
+class InvalidSignatureError extends Error {}
+
 /**
  * Valida a assinatura do webhook (header x-signature), conforme a
- * documentação do Mercado Pago. Se MERCADOPAGO_WEBHOOK_SECRET não estiver
- * configurado, pula a validação (útil em desenvolvimento) e só avisa no log.
+ * documentação do Mercado Pago.
+ *
+ * Em produção, MERCADOPAGO_WEBHOOK_SECRET é obrigatório (isso já é
+ * garantido no boot por config/env.js) — se por algum motivo a validação
+ * chegar aqui sem secret configurado em produção, rejeitamos por padrão
+ * seguro, em vez de deixar passar. Fora de produção (dev/test), se o
+ * secret não estiver configurado, avisamos no log e pulamos a validação
+ * — só para facilitar testar localmente sem precisar configurar tudo.
  */
 function verifyMercadoPagoSignature(req) {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+
   if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new InvalidSignatureError("MERCADOPAGO_WEBHOOK_SECRET ausente em produção.");
+    }
     console.warn(
-      "⚠️  MERCADOPAGO_WEBHOOK_SECRET não configurado — pulando validação de assinatura do webhook (NÃO recomendado em produção)."
+      "⚠️  MERCADOPAGO_WEBHOOK_SECRET não configurado — pulando validação de " +
+      "assinatura do webhook (aceitável em dev, NUNCA em produção)."
     );
     return;
   }
@@ -196,14 +207,14 @@ function verifyMercadoPagoSignature(req) {
   const dataId = req.query?.["data.id"] ?? req.body?.data?.id;
 
   if (!signatureHeader || !requestId || !dataId) {
-    throw new Error("Cabeçalhos de assinatura ausentes no webhook.");
+    throw new InvalidSignatureError("Cabeçalhos de assinatura ausentes no webhook.");
   }
 
   const parts = Object.fromEntries(
-    signatureHeader.split(",").map((p) => p.trim().split("="))
+    String(signatureHeader).split(",").map((p) => p.trim().split("="))
   );
   const { ts, v1 } = parts;
-  if (!ts || !v1) throw new Error("Formato de x-signature inválido.");
+  if (!ts || !v1) throw new InvalidSignatureError("Formato de x-signature inválido.");
 
   const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
   const expectedHash = crypto
@@ -211,7 +222,15 @@ function verifyMercadoPagoSignature(req) {
     .update(manifest)
     .digest("hex");
 
-  if (expectedHash !== v1) {
-    throw new Error("Assinatura do webhook inválida.");
+  // Comparação em tempo constante — evita vazar informação sobre o hash
+  // esperado através do tempo de resposta (timing attack).
+  const expectedBuf = Buffer.from(expectedHash, "hex");
+  const receivedBuf = Buffer.from(String(v1), "hex");
+  const isValid =
+    expectedBuf.length === receivedBuf.length &&
+    crypto.timingSafeEqual(expectedBuf, receivedBuf);
+
+  if (!isValid) {
+    throw new InvalidSignatureError("Assinatura do webhook inválida.");
   }
 }

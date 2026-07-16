@@ -3,6 +3,9 @@ import path from "path";
 import puppeteer from "puppeteer";
 import cors from "cors";
 import crypto from "crypto";
+import cloudinary, { assertCloudinaryConfigured } from "./config/cloudinary.js";
+import { uploadImage } from "./middleware/uploadMiddleware.js";
+import "dotenv/config";
 
 /* ─── Config ────────────────────────────────────────────── */
 const PORT = Number(process.env.PORT) || 3000;
@@ -46,8 +49,6 @@ function cacheSet(key, value) {
 }
 
 /* ─── Input validation ──────────────────────────────────── */
-const ALLOWED_HTML_TAGS_RE = /<script\b/i; // rough guard — block unexpected script injection
-
 function validateHtml(html) {
   if (typeof html !== "string") return "htmlContent deve ser uma string.";
   const byteSize = Buffer.byteLength(html, "utf8");
@@ -70,21 +71,66 @@ const launchBrowser = () =>
 /* ─── Rate limiting (simple in-memory) ─────────────────── */
 const rateMap = new Map(); // ip → { count, resetAt }
 const RATE_WINDOW_MS = 60_000;
-const RATE_LIMIT = 10; // max 10 PDF requests/minute per IP
+const RATE_LIMIT_PDF = 10;    // 10 PDFs/minuto por IP
+const RATE_LIMIT_UPLOAD = 20; // 20 uploads de imagem/minuto por IP
 
-function checkRate(ip) {
+function checkRate(ip, bucket, limit) {
+  const key = `${bucket}:${ip}`;
   const now = Date.now();
-  const entry = rateMap.get(ip) ?? { count: 0, resetAt: now + RATE_WINDOW_MS };
+  const entry = rateMap.get(key) ?? { count: 0, resetAt: now + RATE_WINDOW_MS };
   if (now > entry.resetAt) {
     entry.count = 0;
     entry.resetAt = now + RATE_WINDOW_MS;
   }
   entry.count++;
-  rateMap.set(ip, entry);
-  return entry.count <= RATE_LIMIT;
+  rateMap.set(key, entry);
+  return entry.count <= limit;
 }
 
 /* ─── Routes ────────────────────────────────────────────── */
+
+/**
+ * POST /upload-imagem
+ * Recebe uma imagem (multipart/form-data, campo "imagem"), envia para o
+ * Cloudinary e retorna a URL segura (https) para ser salva em
+ * personal.imageSrc no frontend.
+ */
+app.post("/upload-imagem", uploadImage.single("imagem"), async (req, res) => {
+  const clientIp = req.ip ?? "unknown";
+
+  if (!checkRate(clientIp, "upload", RATE_LIMIT_UPLOAD)) {
+    return res.status(429).json({ error: "Muitas requisições. Tente novamente em 1 minuto." });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: "Nenhuma imagem enviada (campo 'imagem')." });
+  }
+
+  try {
+    assertCloudinaryConfigured();
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "curriculos",
+          resource_type: "image",
+          // Redimensiona e comprime automaticamente — evita fotos gigantes no PDF
+          transformation: [
+            { width: 800, height: 800, crop: "limit" },
+            { quality: "auto", fetch_format: "auto" },
+          ],
+        },
+        (err, result) => (err ? reject(err) : resolve(result))
+      );
+      stream.end(req.file.buffer);
+    });
+
+    return res.json({ url: uploadResult.secure_url, publicId: uploadResult.public_id });
+  } catch (err) {
+    console.error("Erro ao enviar imagem para o Cloudinary:", err.message);
+    return res.status(500).json({ error: "Falha ao enviar a imagem." });
+  }
+});
 
 /**
  * POST /gerar-curriculo
@@ -93,7 +139,7 @@ function checkRate(ip) {
 app.post("/gerar-curriculo", async (req, res) => {
   const clientIp = req.ip ?? "unknown";
 
-  if (!checkRate(clientIp)) {
+  if (!checkRate(clientIp, "pdf", RATE_LIMIT_PDF)) {
     return res.status(429).json({ error: "Muitas requisições. Tente novamente em 1 minuto." });
   }
 
@@ -117,12 +163,13 @@ app.post("/gerar-curriculo", async (req, res) => {
     page.on("request", (req) => {
       const type = req.resourceType();
       const url = req.url();
-      // Allow fonts, stylesheets, images from trusted CDNs; block everything else
+      // Allow fonts, stylesheets, images from trusted CDNs + Cloudinary; block everything else
       const ALLOWED_HOSTS = [
         "localhost",
         "fonts.googleapis.com",
         "fonts.gstatic.com",
         "unpkg.com",
+        "res.cloudinary.com",
       ];
       const isAllowed =
         type === "document" ||
@@ -183,6 +230,9 @@ app.get("/curriculo/:id", (req, res) => {
 app.use((err, _req, res, _next) => {
   if (err.message?.startsWith("CORS:")) {
     return res.status(403).json({ error: err.message });
+  }
+  if (err.name === "MulterError" || err.message?.includes("não permitido")) {
+    return res.status(400).json({ error: err.message });
   }
   console.error("Unhandled error:", err);
   res.status(500).json({ error: "Erro interno do servidor." });

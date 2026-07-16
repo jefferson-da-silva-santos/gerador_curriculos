@@ -130,3 +130,40 @@
   align-items: center;
   gap: 8px;
 }
+
+@media (max-width: 380px) {
+  .payment-modal-overlay {
+    padding: 12px; /* evita o modal grudar na borda da tela */
+  }
+
+  .payment-modal {
+    max-width: 100%;
+    padding: 20px 16px;
+    gap: 10px;
+  }
+
+  .payment-modal__title {
+    font-size: 14px;
+  }
+
+  .payment-modal__amount {
+    font-size: 22px;
+  }
+
+  .payment-modal__qrcode {
+    width: 160px;
+    height: 160px;
+  }
+
+  .payment-modal__pix-code code {
+    font-size: 10px;
+    max-height: 50px;
+  }
+
+  .payment-modal__close {
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+  }
+}

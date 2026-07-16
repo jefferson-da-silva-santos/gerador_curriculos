@@ -136,7 +136,18 @@ html, body, #root {
   background: var(--bg-page);
 }
 
-/* ── Top Header Bar ───────────────────────────────────────── */
+/* ── Main workspace ───────────────────────────────────────── */
+.workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+
 .topbar {
   height: var(--header-h);
   background: var(--bg-panel);
@@ -192,7 +203,7 @@ html, body, #root {
   margin-left: auto;
 }
 
-/* Selector group (Font / Theme) */
+/* Selector group (Fonte / Idioma / Tema) */
 .selector-group {
   display: flex;
   align-items: center;
@@ -274,18 +285,6 @@ html, body, #root {
   font-size: 15px;
 }
 
-.container p,
-.container li,
-.container h1,
-.container h2,
-.container h3,
-.container h4,
-.container h5,
-.container h6,
-.container div {
-  color: #1a1917;
-}
-
 .theme-toggle-btn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
@@ -298,7 +297,7 @@ html, body, #root {
   border-color: var(--accent);
 }
 
-/* PDF button */
+/* PDF export button */
 .btn-generate {
   height: 34px;
   padding: 0 16px;
@@ -329,15 +328,90 @@ html, body, #root {
 
 .btn-generate i { font-size: 14px; }
 
-/* ── Main workspace ───────────────────────────────────────── */
-.workspace {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  min-height: 0;
+/* ── Menu mobile (hamburguer) ─────────────────────────────── */
+.topbar__menu-btn {
+  display: none;
+  position: static;       /* nunca absolute aqui */
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
-/* ── Sidebar Nav (section tabs) ───────────────────────────── */
+.topbar__menu-btn i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-width: 700px) {
+  .topbar__menu-btn { display: flex; }
+}
+.topbar__menu-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.topbar__mobile-menu {
+  position: absolute;
+  top: var(--header-h);
+  left: 0;
+  right: 0;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 150;
+  animation: menuIn 150ms ease forwards;
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.topbar__mobile-menu .selector-group {
+  width: 100%;
+  height: 38px;
+}
+
+.topbar__mobile-menu .selector-group__label {
+  display: flex;
+}
+
+.topbar__mobile-menu .selector-group__value {
+  flex: 1;
+  max-width: none;
+}
+
+.topbar__mobile-menu .theme-toggle-btn {
+  width: 100%;
+  height: 38px;
+  justify-content: flex-start;
+  padding: 0 12px;
+  gap: 8px;
+}
+
+.topbar__mobile-menu .theme-toggle-btn::after {
+  content: "Tema";
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ============================================================
+   SIDEBAR NAV (abas de seção)
+   ============================================================ */
+
 .sidebar-nav {
   width: 48px;
   background: var(--bg-panel);
@@ -376,7 +450,6 @@ html, body, #root {
   color: var(--accent);
 }
 
-/* Tooltip */
 .sidebar-nav__btn::after {
   content: attr(data-tip);
   position: absolute;
@@ -407,7 +480,10 @@ html, body, #root {
   margin: 4px 0;
 }
 
-/* ── Editor column ────────────────────────────────────────── */
+/* ============================================================
+   EDITOR COLUMN
+   ============================================================ */
+
 .editor-col {
   width: var(--sidebar-w);
   background: var(--bg-panel);
@@ -452,7 +528,17 @@ html, body, #root {
 .editor-col__body::-webkit-scrollbar-track { background: transparent; }
 .editor-col__body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
 
-/* ── Sections inside editor ───────────────────────────────── */
+/* Visibilidade das seções do editor */
+.editor-section {
+  display: none;
+}
+
+.editor-section.active {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .section-block {
   display: flex;
   flex-direction: column;
@@ -505,14 +591,9 @@ html, body, #root {
 
 .field textarea { resize: vertical; min-height: 72px; }
 
-.container .col1 .overlay .title,
-.container .col1 .overlay .function {
-  color: white;
-}
-
 .field select { cursor: pointer; }
 
-/* Inline input (skill row) */
+/* Inline input (linha de skill) */
 .input-sm {
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -528,7 +609,7 @@ html, body, #root {
 
 .input-sm:focus { border-color: var(--accent); }
 
-/* ── Cards for array items ────────────────────────────────── */
+/* ── Cards de itens de array (experiência, formação, etc) ──── */
 .item-card {
   background: var(--bg-panel-2);
   border: 1px solid var(--border);
@@ -556,7 +637,7 @@ html, body, #root {
 
 .item-card__label i { font-size: 14px; color: var(--accent); }
 
-/* ── Action buttons ───────────────────────────────────────── */
+/* ── Botões de ação ───────────────────────────────────────── */
 .btn-icon {
   width: 28px;
   height: 28px;
@@ -685,7 +766,10 @@ html, body, #root {
   grid-column: 1 / -1;
 }
 
-/* ── Preview column ───────────────────────────────────────── */
+/* ============================================================
+   PREVIEW COLUMN (prévia do PDF)
+   ============================================================ */
+
 .preview-col {
   flex: 1;
   background: var(--bg-page);
@@ -777,7 +861,31 @@ html, body, #root {
   flex-shrink: 0;
 }
 
-/* ── Toast notifications ──────────────────────────────────── */
+/* Conteúdo do currículo dentro da prévia: sempre em texto escuro
+   sobre fundo branco, independente do tema da UI (a folha do PDF
+   não deve escurecer no dark mode) */
+.container p,
+.container li,
+.container h1,
+.container h2,
+.container h3,
+.container h4,
+.container h5,
+.container h6,
+.container div {
+  color: #1a1917;
+}
+
+/* Overlay sobre a foto/banner do template (título e cargo em branco) */
+.container .col1 .overlay .title,
+.container .col1 .overlay .function {
+  color: white;
+}
+
+/* ============================================================
+   TOASTS / OVERLAYS DE ESTADO
+   ============================================================ */
+
 .toast-container {
   position: fixed;
   bottom: 24px;
@@ -820,7 +928,6 @@ html, body, #root {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Loading overlay ──────────────────────────────────────── */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -865,18 +972,147 @@ html, body, #root {
   font-weight: 500;
 }
 
-/* ── Section visibility ───────────────────────────────────── */
-.editor-section {
-  display: none;
+/* ============================================================
+   PAYMENT MODAL
+   ============================================================ */
+
+.payment-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
 }
 
-.editor-section.active {
+.payment-modal {
+  position: relative;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
 }
 
-/* ── Responsive ───────────────────────────────────────────── */
+.payment-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.payment-modal__close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.payment-modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.payment-modal__title i { color: var(--accent); font-size: 20px; }
+
+.payment-modal__amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.payment-modal__qrcode {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 8px;
+  background: white;
+}
+
+.payment-modal__hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.payment-modal__pix-code {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-modal__pix-code code {
+  display: block;
+  width: 100%;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  font-size: 11px;
+  word-break: break-all;
+  color: var(--text-secondary);
+  max-height: 60px;
+  overflow-y: auto;
+}
+
+.payment-modal__waiting {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.payment-modal__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.payment-modal__error {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.payment-modal__success {
+  color: var(--success);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================================
+   RESPONSIVO (do maior para o menor breakpoint)
+   ============================================================ */
+
+/* ── ≤900px: empilha editor/preview, sidebar vira barra horizontal ── */
 @media (max-width: 900px) {
   :root { --sidebar-w: 100%; }
 
@@ -895,6 +1131,7 @@ html, body, #root {
     border-right: none;
     border-bottom: 1px solid var(--border);
     overflow-x: auto;
+    justify-content: space-between;
   }
 
   .sidebar-nav__btn::after { display: none; }
@@ -936,12 +1173,197 @@ html, body, #root {
   .topbar__brand span { display: none; }
 }
 
+/* ── ≤700px: topbar colapsa em menu hamburguer ────────────── */
+@media (max-width: 700px) {
+  .topbar {
+    position: relative; /* necessário pro dropdown se posicionar certo */
+  }
+
+  .topbar__controls--desktop {
+    display: none;
+  }
+
+  .theme-toggle-btn.topbar__controls--desktop-only {
+    display: none;
+  }
+
+  .topbar__menu-btn {
+    display: flex;
+  }
+
+  /* Exportar PDF: encolhe texto pra caber com brand + hamburguer */
+  .btn-generate span {
+    display: none; /* se o texto "Exportar PDF" estiver num <span>, some e fica só o ícone */
+  }
+
+  .btn-generate {
+    padding: 0 10px;
+  }
+
+  .topbar__brand span {
+    font-size: 13px;
+  }
+}
+
+/* ── ≤600px ───────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .topbar { padding: 0 12px; gap: 8px; }
   .topbar__divider { display: none; }
   .link-item__fields { grid-template-columns: 1fr; }
 }
 
-/* ── Submitting state ─────────────────────────────────────── */
+/* ── ≤380px: telas ultra pequenas (ex: 320px) ─────────────── */
+@media (max-width: 380px) {
+  /* Topbar mais compacto */
+  .topbar {
+    padding: 0 8px;
+    gap: 6px;
+    height: 48px;
+  }
+
+  .topbar__brand-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .topbar__brand span {
+    display: none; /* some o texto da marca, fica só o ícone */
+  }
+
+  .topbar__divider { display: none; }
+
+  .selector-group__label {
+    display: none;
+  }
+
+  .selector-group {
+    height: 30px;
+  }
+
+  .selector-group__btn {
+    width: 26px;
+  }
+
+  .selector-group__value {
+    max-width: 56px;
+    font-size: 11px;
+    padding: 0 4px;
+  }
+
+  .theme-toggle-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .btn-generate {
+    width: 34px;
+    height: 30px;
+    padding: 0;
+    font-size: 12px;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .sidebar-nav {
+    height: 44px;
+    padding: 0 6px;
+    gap: 2px;
+  }
+
+  .sidebar-nav__btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .editor-col__header {
+    padding: 12px 14px 10px;
+  }
+
+  .editor-col__body {
+    padding: 14px;
+    gap: 18px;
+  }
+
+  .item-card {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .link-item {
+    padding: 10px;
+  }
+
+  .skill-row select.input-sm {
+    width: 44px;
+    font-size: 11px;
+  }
+
+  .field input,
+  .field textarea,
+  .field select,
+  .input-sm {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .preview-col__body {
+    padding: 8px;
+  }
+
+  .preview-col__bar {
+    padding: 0 8px;
+    height: 36px;
+  }
+
+  .preview-col__zoom-btn {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Payment modal */
+  .payment-modal-overlay {
+    padding: 12px; /* evita o modal grudar na borda da tela */
+  }
+
+  .payment-modal {
+    max-width: 100%;
+    padding: 20px 16px;
+    gap: 10px;
+  }
+
+  .payment-modal__title {
+    font-size: 14px;
+  }
+
+  .payment-modal__amount {
+    font-size: 22px;
+  }
+
+  .payment-modal__qrcode {
+    width: 160px;
+    height: 160px;
+  }
+
+  .payment-modal__pix-code code {
+    font-size: 10px;
+    max-height: 50px;
+  }
+
+  .payment-modal__close {
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* ============================================================
+   ESTADOS
+   ============================================================ */
+
 body.is-submitting * { pointer-events: none !important; }
 body.is-submitting .btn-generate { opacity: 0.6; }

@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // A partir do Prisma 7, a URL de conexão NÃO fica mais aqui.
+  // Ela vive em prisma.config.ts (pro CLI/migrations) e em config/prisma.js
+  // (pro cliente em runtime, via driver adapter).
+}
+
+// Um registro por tentativa de cobrança. "used" garante que o mesmo
+// pagamento aprovado não gere o PDF mais de uma vez.
+model Payment {
+  id              String    @id @default(cuid())
+  mpPaymentId     String?   @unique // id retornado pelo Mercado Pago
+  status          String    @default("pending") // pending | approved | rejected | expired
+  amount          Decimal   @db.Decimal(10, 2)
+  payerEmail      String?
+  pixCode         String?   @db.Text // "copia e cola"
+  pixQrCodeBase64 String?   @db.Text // imagem do QR Code em base64
+  used            Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  expiresAt       DateTime?
+
+  @@index([status])
+  @@index([mpPaymentId])
+}

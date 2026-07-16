@@ -5,7 +5,8 @@ import cors from "cors";
 import crypto from "crypto";
 import cloudinary, { assertCloudinaryConfigured } from "./config/cloudinary.js";
 import { uploadImage } from "./middleware/uploadMiddleware.js";
-import "dotenv/config";
+import prisma from "./config/prisma.js";
+import { paymentRouter } from "./routes/payment.js";
 
 /* ─── Config ────────────────────────────────────────────── */
 const PORT = Number(process.env.PORT) || 3000;
@@ -28,16 +29,19 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: (origin, cb) => {
-      // Allow same-origin / non-browser callers (Puppeteer) and configured origin
+      // Allow same-origin / non-browser callers (Puppeteer, Mercado Pago webhook) and configured origin
       if (!origin || origin === ALLOWED_ORIGIN) return cb(null, true);
       cb(new Error(`CORS: origem não permitida — ${origin}`));
     },
     methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "x-signature", "x-request-id"],
   })
 );
 
 app.use(express.json({ limit: MAX_BODY_SIZE }));
+
+/* ─── Rotas de pagamento (Pix / Mercado Pago) ───────────── */
+app.use(paymentRouter);
 
 /* ─── In-memory cache with TTL auto-cleanup ─────────────── */
 const curriculumCache = new Map();
@@ -91,9 +95,6 @@ function checkRate(ip, bucket, limit) {
 
 /**
  * POST /upload-imagem
- * Recebe uma imagem (multipart/form-data, campo "imagem"), envia para o
- * Cloudinary e retorna a URL segura (https) para ser salva em
- * personal.imageSrc no frontend.
  */
 app.post("/upload-imagem", uploadImage.single("imagem"), async (req, res) => {
   const clientIp = req.ip ?? "unknown";
@@ -114,7 +115,6 @@ app.post("/upload-imagem", uploadImage.single("imagem"), async (req, res) => {
         {
           folder: "curriculos",
           resource_type: "image",
-          // Redimensiona e comprime automaticamente — evita fotos gigantes no PDF
           transformation: [
             { width: 800, height: 800, crop: "limit" },
             { quality: "auto", fetch_format: "auto" },
@@ -134,7 +134,8 @@ app.post("/upload-imagem", uploadImage.single("imagem"), async (req, res) => {
 
 /**
  * POST /gerar-curriculo
- * Receives complete HTML, caches it, launches Puppeteer and returns a PDF.
+ * AGORA EXIGE um paymentId de um pagamento aprovado e ainda não utilizado.
+ * Body: { htmlContent, paymentId }
  */
 app.post("/gerar-curriculo", async (req, res) => {
   const clientIp = req.ip ?? "unknown";
@@ -143,10 +144,40 @@ app.post("/gerar-curriculo", async (req, res) => {
     return res.status(429).json({ error: "Muitas requisições. Tente novamente em 1 minuto." });
   }
 
-  const { htmlContent } = req.body;
+  const { htmlContent, paymentId } = req.body;
+
   const validationError = validateHtml(htmlContent);
   if (validationError) {
     return res.status(400).json({ error: validationError });
+  }
+
+  if (!paymentId || typeof paymentId !== "string") {
+    return res.status(402).json({ error: "Pagamento obrigatório: informe paymentId." });
+  }
+
+  // ── Verifica e "consome" o pagamento numa transação, evitando reuso ──
+  let payment;
+  try {
+    payment = await prisma.$transaction(async (tx) => {
+      const p = await tx.payment.findUnique({ where: { id: paymentId } });
+
+      if (!p) throw new PaymentError(404, "Pagamento não encontrado.");
+      if (p.used) throw new PaymentError(409, "Este pagamento já foi utilizado.");
+      if (p.status !== "approved") {
+        throw new PaymentError(402, "Pagamento ainda não aprovado.");
+      }
+
+      return tx.payment.update({
+        where: { id: paymentId },
+        data: { used: true },
+      });
+    });
+  } catch (err) {
+    if (err instanceof PaymentError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error("Erro ao validar pagamento:", err.message);
+    return res.status(500).json({ error: "Falha ao validar o pagamento." });
   }
 
   // Generate a cryptographically random ID (not guessable)
@@ -158,12 +189,10 @@ app.post("/gerar-curriculo", async (req, res) => {
     browser = await launchBrowser();
     const page = await browser.newPage();
 
-    // Disable navigation to any external URL from within the page
     await page.setRequestInterception(true);
     page.on("request", (req) => {
       const type = req.resourceType();
       const url = req.url();
-      // Allow fonts, stylesheets, images from trusted CDNs + Cloudinary; block everything else
       const ALLOWED_HOSTS = [
         "localhost",
         "fonts.googleapis.com",
@@ -195,6 +224,8 @@ app.post("/gerar-curriculo", async (req, res) => {
     return res.send(pdf);
   } catch (err) {
     console.error("Erro ao gerar PDF:", err.message);
+    // Se falhou de fato ao gerar, devolve o "crédito" do pagamento
+    await prisma.payment.update({ where: { id: paymentId }, data: { used: false } }).catch(() => {});
     return res.status(500).json({ error: "Falha interna ao gerar o PDF." });
   } finally {
     browser?.close();
@@ -202,10 +233,15 @@ app.post("/gerar-curriculo", async (req, res) => {
   }
 });
 
+class PaymentError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
 /**
  * GET /curriculo/:id
- * Puppeteer-only route — serves the cached HTML by ID.
- * Only accessible from localhost.
  */
 app.get("/curriculo/:id", (req, res) => {
   const { hostname } = req;
@@ -214,7 +250,6 @@ app.get("/curriculo/:id", (req, res) => {
   }
 
   const { id } = req.params;
-  // Validate ID format (hex, 32 chars)
   if (!/^[0-9a-f]{32}$/.test(id)) {
     return res.status(400).send("ID inválido.");
   }

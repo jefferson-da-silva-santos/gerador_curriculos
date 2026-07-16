@@ -3,8 +3,6 @@ import multer from "multer";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-// Armazena em memória (buffer) — não grava nada em disco. O buffer é
-// repassado direto para o upload_stream do Cloudinary.
 const storage = multer.memoryStorage();
 
 function fileFilter(_req, file, cb) {

@@ -1,12 +1,38 @@
+// ARQUIVO: PaymentModal.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
 import { showNotification } from "../utils/notyf";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 const POLL_INTERVAL_MS = 3000;
 
+function onlyDigits(value) {
+  return value.replace(/\D/g, "");
+}
+
+// Máscara simples de CPF/CNPJ para exibição - não valida dígito
+// verificador (isso já é feito no backend); só melhora a legibilidade
+// enquanto a pessoa digita.
+function formatDocument(value) {
+  const digits = onlyDigits(value).slice(0, 14);
+
+  if (digits.length <= 11) {
+    return digits
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+
+  return digits
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+
 /**
- * Modal de cobrança Pix. Cria a cobrança ao montar, mostra QR Code +
- * copia-e-cola, e faz polling do status até aprovar (ou expirar).
+ * Modal de cobrança Pix. Primeiro coleta nome e CPF/CNPJ do pagador
+ * (exigidos pela API de pagamentos), depois cria a cobrança, mostra
+ * QR Code + copia-e-cola, e faz polling do status até aprovar (ou expirar).
  *
  * Uso:
  *   <PaymentModal
@@ -16,10 +42,16 @@ const POLL_INTERVAL_MS = 3000;
  *   />
  */
 const PaymentModal = ({ email, onApproved, onClose }) => {
-  const [payment, setPayment] = useState(null); // { paymentId, pixCode, pixQrCodeBase64, amount, status }
-  const [status, setStatus] = useState("loading"); // loading | pending | approved | expired | error
+  // step: "form" | "loading" | "pending" | "approved" | "expired" | "rejected" | "error"
+  const [step, setStep] = useState("form");
+  const [payment, setPayment] = useState(null); // { paymentId, pixCode, pixQrCodeBase64, amount }
   const [copied, setCopied] = useState(false);
   const pollRef = useRef(null);
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [document, setDocument] = useState("");
+  const [formError, setFormError] = useState(null);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -28,58 +60,81 @@ const PaymentModal = ({ email, onApproved, onClose }) => {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  useEffect(() => stopPolling, [stopPolling]);
 
-    async function createPayment() {
-      try {
-        const res = await fetch(`${API_URL}/pagamento/criar`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        if (cancelled) return;
+  const startPolling = useCallback(
+    (paymentId) => {
+      pollRef.current = setInterval(async () => {
+        try {
+          const statusRes = await fetch(`${API_URL}/pagamento/status/${paymentId}`);
+          if (!statusRes.ok) return;
+          const statusData = await statusRes.json();
 
-        setPayment(data);
-        setStatus(data.status === "approved" ? "approved" : "pending");
-
-        if (data.status === "approved") {
-          onApproved?.(data.paymentId);
-          return;
-        }
-
-        pollRef.current = setInterval(async () => {
-          try {
-            const statusRes = await fetch(`${API_URL}/pagamento/status/${data.paymentId}`);
-            if (!statusRes.ok) return;
-            const statusData = await statusRes.json();
-
-            if (statusData.status === "approved") {
-              stopPolling();
-              setStatus("approved");
-              onApproved?.(data.paymentId);
-            } else if (statusData.status === "expired" || statusData.status === "rejected") {
-              stopPolling();
-              setStatus(statusData.status);
-            }
-          } catch {
-            // Falha pontual de rede no polling não é crítica — tenta de novo no próximo tick
+          if (statusData.status === "approved") {
+            stopPolling();
+            setStep("approved");
+            onApproved?.(paymentId);
+          } else if (statusData.status === "expired" || statusData.status === "rejected") {
+            stopPolling();
+            setStep(statusData.status);
           }
-        }, POLL_INTERVAL_MS);
-      } catch (err) {
-        console.error("Erro ao criar pagamento:", err);
-        if (!cancelled) setStatus("error");
-      }
+        } catch {
+          // Falha pontual de rede no polling não é crítica - tenta de novo no próximo tick
+        }
+      }, POLL_INTERVAL_MS);
+    },
+    [onApproved, stopPolling]
+  );
+
+  const handleSubmitForm = async (event) => {
+    event.preventDefault();
+    setFormError(null);
+
+    const digits = onlyDigits(document);
+    if (firstName.trim().length < 2 || lastName.trim().length < 2) {
+      setFormError("Informe nome e sobrenome completos.");
+      return;
+    }
+    if (digits.length !== 11 && digits.length !== 14) {
+      setFormError("CPF deve ter 11 dígitos (ou CNPJ, 14 dígitos).");
+      return;
     }
 
-    createPayment();
-    return () => {
-      cancelled = true;
-      stopPolling();
-    };
-  }, [email, onApproved, stopPolling]);
+    setStep("loading");
+
+    try {
+      const res = await fetch(`${API_URL}/pagamento/criar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          document: digits,
+        }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.error || "Falha ao gerar a cobrança.");
+      }
+
+      const data = await res.json();
+      setPayment(data);
+
+      if (data.status === "approved") {
+        setStep("approved");
+        onApproved?.(data.paymentId);
+        return;
+      }
+
+      setStep("pending");
+      startPolling(data.paymentId);
+    } catch (err) {
+      console.error("Erro ao criar pagamento:", err.message);
+      setStep("error");
+    }
+  };
 
   const handleCopy = async () => {
     if (!payment?.pixCode) return;
@@ -100,32 +155,81 @@ const PaymentModal = ({ email, onApproved, onClose }) => {
           <i className="bx bxl-pix" /> Pagamento via Pix
         </h2>
 
-        {status === "loading" && (
+        {step === "form" && (
+          <form className="payment-modal__form" onSubmit={handleSubmitForm}>
+            <p className="payment-modal__hint">
+              Precisamos do seu nome e CPF para emitir a cobrança Pix.
+            </p>
+
+            <label className="payment-modal__field">
+              Nome
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Ana"
+                required
+              />
+            </label>
+
+            <label className="payment-modal__field">
+              Sobrenome
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Silva"
+                required
+              />
+            </label>
+
+            <label className="payment-modal__field">
+              CPF ou CNPJ
+              <input
+                type="text"
+                inputMode="numeric"
+                value={formatDocument(document)}
+                onChange={(e) => setDocument(onlyDigits(e.target.value))}
+                placeholder="000.000.000-00"
+                maxLength={18}
+                required
+              />
+            </label>
+
+            {formError && <p className="payment-modal__error">{formError}</p>}
+
+            <button type="submit" className="btn-add">
+              Gerar Pix
+            </button>
+          </form>
+        )}
+
+        {step === "loading" && (
           <div className="payment-modal__loading">
             <div className="loading-spinner" />
             <p>Gerando cobrança...</p>
           </div>
         )}
 
-        {status === "error" && (
+        {step === "error" && (
           <p className="payment-modal__error">
             Não foi possível gerar a cobrança. Tente novamente em instantes.
           </p>
         )}
 
-        {status === "expired" && (
+        {step === "expired" && (
           <p className="payment-modal__error">
             O tempo para pagamento expirou. Feche e tente novamente.
           </p>
         )}
 
-        {status === "rejected" && (
+        {step === "rejected" && (
           <p className="payment-modal__error">
             O pagamento foi recusado. Tente novamente.
           </p>
         )}
 
-        {status === "pending" && payment && (
+        {step === "pending" && payment && (
           <>
             <p className="payment-modal__amount">
               R$ {Number(payment.amount).toFixed(2).replace(".", ",")}
@@ -158,7 +262,7 @@ const PaymentModal = ({ email, onApproved, onClose }) => {
           </>
         )}
 
-        {status === "approved" && (
+        {step === "approved" && (
           <p className="payment-modal__success">
             <i className="bx bx-check-circle" /> Pagamento aprovado! Gerando seu PDF...
           </p>

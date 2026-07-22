@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { showNotification } from "../utils/notyf";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = "https://resume-generation-payment.vercel.app";
 const POLL_INTERVAL_MS = 3000;
 
 function onlyDigits(value) {

@@ -9,13 +9,19 @@ export const timelineLayout = (fontStyles, rgb) => `
     box-sizing: border-box;
     list-style: none;
     font-size: 0.95rem;
-    min-width: 0; /* evita que filhos de flex/grid forcem overflow pelo conteúdo */
+    min-width: 0;
     overflow-wrap: break-word;
     word-break: break-word;
   }
 
   html, body { height: 100%; -webkit-print-color-adjust: exact; overflow-x: hidden; }
-  body { ${fontStyles} color: #1c1c1c; }
+  body { ${fontStyles} }
+
+  /* Trava a cor do texto, independente do modo claro/escuro do editor. */
+  .tl-page,
+  .tl-page * {
+    color: #1c1c1c;
+  }
 
   .tl-page {
     width: 100%;
@@ -44,7 +50,7 @@ export const timelineLayout = (fontStyles, rgb) => `
   .tl-header > div { flex: 1; min-width: 0; }
 
   .tl-header__name { font-size: 1.7rem; font-weight: 700; color: rgb(${rgb}); }
-  .tl-header__role { font-size: 1rem; color: #444; margin-top: 0.15rem; }
+  .tl-header__role { font-size: 1rem; margin-top: 0.15rem; }
 
   .tl-contacts {
     margin-top: 0.5rem;
@@ -52,9 +58,8 @@ export const timelineLayout = (fontStyles, rgb) => `
     flex-wrap: wrap;
     gap: 0.25rem 1.1rem;
     font-size: 0.78rem;
-    color: #444;
   }
-  .tl-contacts a { color: #444; text-decoration: none; }
+  .tl-contacts a { text-decoration: none; }
 
   .tl-section { margin-bottom: 1.5rem; }
   .tl-section__title {
@@ -123,5 +128,5 @@ export const timelineLayout = (fontStyles, rgb) => `
   .tl-item li::before { content: "–"; position: absolute; left: 0; color: rgb(${rgb}); }
 
   .tl-footer { margin-top: 1rem; font-size: 0.6rem; color: rgba(0,0,0,0.5); }
-  a { color: rgb(${rgb}); }
+  .tl-page a { color: rgb(${rgb}); }
 `;

@@ -842,9 +842,17 @@ html, body, #root {
 .preview-col__body::-webkit-scrollbar-track { background: transparent; }
 .preview-col__body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 
+.image-uploader__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .preview-page {
   width: 210mm;
+  height: max-content;
   min-height: 297mm;
+  max-height: max-content;
   background: white;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
   transform-origin: top center;

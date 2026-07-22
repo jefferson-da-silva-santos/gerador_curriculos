@@ -15,17 +15,23 @@ export const creativeLayout = (fontStyles, rgb) => `
   }
 
   html, body { height: 100%; -webkit-print-color-adjust: exact; overflow-x: hidden; }
-  body { ${fontStyles} color: #1c1c1c; }
+  body { ${fontStyles} }
+
+  /* Trava a cor do texto, independente do modo claro/escuro do editor. */
+  .cr-page,
+  .cr-page * {
+    color: #1c1c1c;
+  }
 
   .cr-page { width: 100%; max-width: 100%; min-height: 100vh; position: relative; overflow-x: hidden; }
 
   .cr-banner {
     position: relative;
     background: rgb(${rgb});
-    color: #fff;
     padding: 2.2rem 2.5rem 3rem;
     clip-path: polygon(0 0, 100% 0, 100% 82%, 0 100%);
   }
+  .cr-banner, .cr-banner * { color: #fff; }
 
   .cr-banner__inner { display: flex; align-items: center; gap: 1.5rem; }
   .cr-banner__inner > div { flex: 1; min-width: 0; }
@@ -49,7 +55,7 @@ export const creativeLayout = (fontStyles, rgb) => `
     gap: 0.25rem 1.1rem;
     font-size: 0.8rem;
   }
-  .cr-contacts a, .cr-contacts span { color: #fff; text-decoration: none; }
+  .cr-contacts a, .cr-contacts span { text-decoration: none; }
 
   .cr-body { padding: 1.2rem 2.5rem 2rem; }
 
@@ -57,7 +63,7 @@ export const creativeLayout = (fontStyles, rgb) => `
   .cr-block__title {
     display: inline-block;
     font-weight: 700;
-    color: #fff;
+    color: #fff !important;
     background: rgb(${rgb});
     padding: 0.2rem 0.8rem;
     border-radius: 999px;
@@ -87,5 +93,5 @@ export const creativeLayout = (fontStyles, rgb) => `
   .cr-entry li::before { content: "▸"; position: absolute; left: 0; color: rgb(${rgb}); }
 
   .cr-footer { padding: 0 2.5rem 1.5rem; font-size: 0.6rem; color: rgba(0,0,0,0.5); }
-  a { color: rgb(${rgb}); }
+  .cr-body a { color: rgb(${rgb}); }
 `;

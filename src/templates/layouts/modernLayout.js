@@ -10,19 +10,28 @@ export const modernLayout = (fontStyles, rgb) => `
     box-sizing: border-box;
     list-style: none;
     font-size: 0.95rem;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
-  html, body {
-    height: 100%;
-    -webkit-print-color-adjust: exact;
-  }
-
+  html, body { height: 100%; -webkit-print-color-adjust: exact; overflow-x: hidden; }
   body { ${fontStyles} }
+
+  /* Trava a cor do texto, independente do modo claro/escuro do editor.
+     Sem isso, o texto herda a cor do tema do editor (fica claro no dark
+     mode). Como usa seletor universal (especificidade igual a uma classe),
+     as regras de destaque (títulos, links) mais abaixo neste arquivo
+     continuam vencendo, por virem depois no CSS. */
+  .m-page,
+  .m-page * {
+    color: #1a1917;
+  }
 
   h1, h3, h4, h5, h6 { font-size: 1rem; }
   h2 { font-size: 1.3rem; padding-bottom: 0.4rem; }
 
-  .m-page { width: 100%; min-height: 100vh; }
+  .m-page { width: 100%; max-width: 100%; min-height: 100vh; overflow-x: hidden; }
 
   .m-banner {
     display: flex;
@@ -32,6 +41,7 @@ export const modernLayout = (fontStyles, rgb) => `
     color: #fff;
     background: linear-gradient(120deg, rgb(${rgb}), rgba(${rgb}, 0.75));
   }
+  .m-banner, .m-banner * { color: #fff; }
 
   .m-banner img {
     width: 8rem;
@@ -41,6 +51,8 @@ export const modernLayout = (fontStyles, rgb) => `
     border: 4px solid rgba(255, 255, 255, 0.9);
     flex-shrink: 0;
   }
+
+  .m-banner__inner { display: flex; align-items: center; gap: 1.5rem; }
 
   .m-banner__name { font-size: 2rem; line-height: 1.1; }
   .m-banner__role { opacity: 0.9; margin-top: 0.25rem; }
@@ -54,11 +66,11 @@ export const modernLayout = (fontStyles, rgb) => `
   }
 
   .m-banner__contacts a,
-  .m-banner__contacts span { color: #fff; text-decoration: none; }
+  .m-banner__contacts span { text-decoration: none; }
 
   .m-body {
     display: grid;
-    grid-template-columns: 1fr 1.6fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
     gap: 2rem;
     padding: 2rem 2.5rem;
   }
@@ -75,8 +87,10 @@ export const modernLayout = (fontStyles, rgb) => `
 
   .m-skill-row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 0.4rem;
     margin-bottom: 0.5rem;
   }
 
@@ -92,9 +106,10 @@ export const modernLayout = (fontStyles, rgb) => `
   .m-entry { margin-bottom: 1rem; }
   .m-entry__row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     font-weight: 600;
-    gap: 1rem;
+    gap: 0.3rem 1rem;
   }
   .m-entry__sub { font-weight: 600; color: rgb(${rgb}); margin-top: 0.15rem; }
   .m-entry__desc { margin-top: 0.35rem; }
@@ -105,8 +120,9 @@ export const modernLayout = (fontStyles, rgb) => `
   .m-footer {
     padding: 1rem 2.5rem 2rem;
     font-size: 0.65rem;
-    color: rgba(0, 0, 0, 0.55);
+    color: rgba(0, 0, 0, 0.55) !important;
   }
 
-  a { text-decoration: none; color: rgb(${rgb}); }
+  .m-page a { text-decoration: none; color: rgb(${rgb}); }
+  .m-banner a { color: #fff; }
 `;

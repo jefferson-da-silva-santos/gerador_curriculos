@@ -10,24 +10,31 @@ export const minimalLayout = (fontStyles, rgb) => `
     box-sizing: border-box;
     list-style: none;
     font-size: 0.95rem;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
-  html, body {
-    height: 100%;
-    -webkit-print-color-adjust: exact;
-  }
+  html, body { height: 100%; -webkit-print-color-adjust: exact; overflow-x: hidden; }
+  body { ${fontStyles} }
 
-  body { ${fontStyles} color: #1a1a1a; }
+  /* Trava a cor do texto, independente do modo claro/escuro do editor. */
+  .mi-page,
+  .mi-page * {
+    color: #1a1917;
+  }
 
   .mi-page {
     width: 100%;
+    max-width: 100%;
     min-height: 100vh;
     padding: 2.5rem 3rem;
+    overflow-x: hidden;
   }
 
   .mi-header { margin-bottom: 1.5rem; border-bottom: 3px solid rgb(${rgb}); padding-bottom: 1rem; }
   .mi-header__name { font-size: 1.8rem; font-weight: 700; color: rgb(${rgb}); }
-  .mi-header__role { font-size: 1rem; margin-top: 0.15rem; color: #333; }
+  .mi-header__role { font-size: 1rem; margin-top: 0.15rem; }
 
   .mi-contacts {
     margin-top: 0.6rem;
@@ -35,9 +42,8 @@ export const minimalLayout = (fontStyles, rgb) => `
     flex-wrap: wrap;
     gap: 0.25rem 1.25rem;
     font-size: 0.8rem;
-    color: #333;
   }
-  .mi-contacts a { color: #333; text-decoration: none; }
+  .mi-contacts a { text-decoration: none; }
 
   .mi-section { margin-bottom: 1.4rem; }
   .mi-section__title {
@@ -61,11 +67,12 @@ export const minimalLayout = (fontStyles, rgb) => `
   .mi-entry { margin-bottom: 0.9rem; }
   .mi-entry__row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     font-weight: 600;
-    gap: 1rem;
+    gap: 0.2rem 1rem;
   }
-  .mi-entry__sub { font-style: italic; color: #444; margin-top: 0.1rem; font-size: 0.88rem; }
+  .mi-entry__sub { font-style: italic; margin-top: 0.1rem; font-size: 0.88rem; }
   .mi-entry__desc { margin-top: 0.3rem; font-size: 0.88rem; }
   .mi-entry ul { margin-top: 0.3rem; display: flex; flex-direction: column; gap: 0.2rem; }
   .mi-entry li { font-size: 0.88rem; padding-left: 0.9rem; position: relative; }
@@ -82,5 +89,5 @@ export const minimalLayout = (fontStyles, rgb) => `
     color: rgba(0, 0, 0, 0.5);
   }
 
-  a { color: rgb(${rgb}); }
+  .mi-page a { color: rgb(${rgb}); }
 `;

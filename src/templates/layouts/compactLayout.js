@@ -15,7 +15,13 @@ export const compactLayout = (fontStyles, rgb) => `
   }
 
   html, body { height: 100%; -webkit-print-color-adjust: exact; overflow-x: hidden; }
-  body { ${fontStyles} color: #1c1c1c; line-height: 1.35; }
+  body { ${fontStyles} line-height: 1.35; }
+
+  /* Trava a cor do texto, independente do modo claro/escuro do editor. */
+  .cp-page,
+  .cp-page * {
+    color: #1c1c1c;
+  }
 
   .cp-page { width: 100%; max-width: 100%; min-height: 100vh; padding: 1.6rem 2rem; overflow-x: hidden; }
 
@@ -30,17 +36,16 @@ export const compactLayout = (fontStyles, rgb) => `
     margin-bottom: 0.9rem;
   }
   .cp-header__name { font-size: 1.35rem; font-weight: 700; color: rgb(${rgb}); }
-  .cp-header__role { font-size: 0.85rem; color: #444; }
+  .cp-header__role { font-size: 0.85rem; }
 
   .cp-contacts {
     display: flex;
     flex-wrap: wrap;
     gap: 0.2rem 1rem;
     font-size: 0.72rem;
-    color: #444;
     margin-bottom: 0.9rem;
   }
-  .cp-contacts a { color: #444; text-decoration: none; }
+  .cp-contacts a { text-decoration: none; }
 
   .cp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 1.5rem; }
 
@@ -68,12 +73,12 @@ export const compactLayout = (fontStyles, rgb) => `
 
   .cp-entry { margin-bottom: 0.5rem; }
   .cp-entry__row { display: flex; flex-wrap: wrap; justify-content: space-between; font-weight: 600; gap: 0.2rem 0.5rem; font-size: 0.78rem; }
-  .cp-entry__sub { font-size: 0.72rem; color: #555; }
+  .cp-entry__sub { font-size: 0.72rem; }
   .cp-entry__desc { font-size: 0.72rem; margin-top: 0.1rem; }
   .cp-entry ul { margin-top: 0.15rem; }
   .cp-entry li { font-size: 0.72rem; padding-left: 0.7rem; position: relative; }
   .cp-entry li::before { content: "•"; position: absolute; left: 0; color: rgb(${rgb}); }
 
   .cp-footer { margin-top: 0.6rem; font-size: 0.55rem; color: rgba(0,0,0,0.5); }
-  a { color: rgb(${rgb}); }
+  .cp-page a { color: rgb(${rgb}); }
 `;

@@ -16,7 +16,13 @@ export const corporateLayout = (fontStyles, rgb) => `
   }
 
   html, body { height: 100%; -webkit-print-color-adjust: exact; overflow-x: hidden; }
-  body { ${fontStyles} color: #222; }
+  body { ${fontStyles} }
+
+  /* Trava a cor do texto, independente do modo claro/escuro do editor. */
+  .co-page,
+  .co-page * {
+    color: #222222;
+  }
 
   .co-page { width: 100%; max-width: 100%; min-height: 100vh; overflow-x: hidden; }
 
@@ -33,10 +39,9 @@ export const corporateLayout = (fontStyles, rgb) => `
     flex-wrap: wrap;
     gap: 0.3rem 1.2rem;
     font-size: 0.78rem;
-    color: #444;
     margin-bottom: 1.4rem;
   }
-  .co-contacts-bar a { color: #444; text-decoration: none; }
+  .co-contacts-bar a { text-decoration: none; }
 
   .co-body { padding: 0 2.5rem 2rem; }
 
@@ -59,12 +64,12 @@ export const corporateLayout = (fontStyles, rgb) => `
 
   .co-entry { margin-bottom: 0.9rem; }
   .co-entry__row { display: flex; flex-wrap: wrap; justify-content: space-between; font-weight: 600; gap: 0.3rem 1rem; }
-  .co-entry__sub { color: #555; font-weight: 600; margin-top: 0.1rem; font-size: 0.87rem; }
+  .co-entry__sub { font-weight: 600; margin-top: 0.1rem; font-size: 0.87rem; }
   .co-entry__desc { margin-top: 0.3rem; font-size: 0.87rem; }
   .co-entry ul { margin-top: 0.3rem; display: flex; flex-direction: column; gap: 0.2rem; }
   .co-entry li { font-size: 0.87rem; padding-left: 0.9rem; position: relative; }
   .co-entry li::before { content: "▪"; position: absolute; left: 0; color: rgb(${rgb}); font-size: 0.6rem; top: 0.25rem; }
 
   .co-footer { padding: 0 2.5rem 1.5rem; font-size: 0.6rem; color: rgba(0,0,0,0.5); }
-  a { color: rgb(${rgb}); }
+  .co-page a { color: rgb(${rgb}); }
 `;

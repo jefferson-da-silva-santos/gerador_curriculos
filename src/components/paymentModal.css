@@ -167,3 +167,39 @@
     height: 26px;
   }
 }
+
+
+/* ── Adicionar ao final do paymentModal.css existente ────────── */
+
+.payment-modal__form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.payment-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.payment-modal__field input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color var(--t);
+}
+
+.payment-modal__field input:focus {
+  border-color: var(--accent);
+}

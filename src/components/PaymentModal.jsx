@@ -2,7 +2,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { showNotification } from "../utils/notyf";
 
-const API_URL = "https://resume-generation-payment.vercel.app";
+// Mesmo padrão do ImageUploader.jsx - antes esta URL estava fixa no
+// código, forçando rebuild pra trocar de ambiente e impedindo teste local.
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 const POLL_INTERVAL_MS = 3000;
 
 function onlyDigits(value) {
@@ -50,7 +52,7 @@ const PaymentModal = ({ email, onApproved, onClose }) => {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [document, setDocument] = useState("");
+  const [documentValue, setDocumentValue] = useState("");
   const [formError, setFormError] = useState(null);
 
   const stopPolling = useCallback(() => {
@@ -90,7 +92,7 @@ const PaymentModal = ({ email, onApproved, onClose }) => {
     event.preventDefault();
     setFormError(null);
 
-    const digits = onlyDigits(document);
+    const digits = onlyDigits(documentValue);
     if (firstName.trim().length < 2 || lastName.trim().length < 2) {
       setFormError("Informe nome e sobrenome completos.");
       return;
@@ -188,8 +190,8 @@ const PaymentModal = ({ email, onApproved, onClose }) => {
               <input
                 type="text"
                 inputMode="numeric"
-                value={formatDocument(document)}
-                onChange={(e) => setDocument(onlyDigits(e.target.value))}
+                value={formatDocument(documentValue)}
+                onChange={(e) => setDocumentValue(onlyDigits(e.target.value))}
                 placeholder="000.000.000-00"
                 maxLength={18}
                 required
@@ -212,21 +214,32 @@ const PaymentModal = ({ email, onApproved, onClose }) => {
         )}
 
         {step === "error" && (
-          <p className="payment-modal__error">
-            Não foi possível gerar a cobrança. Tente novamente em instantes.
-          </p>
+          <>
+            <p className="payment-modal__error">
+              Não foi possível gerar a cobrança. Tente novamente em instantes.
+            </p>
+            <button type="button" className="btn-add" onClick={() => setStep("form")}>
+              Tentar novamente
+            </button>
+          </>
         )}
 
         {step === "expired" && (
-          <p className="payment-modal__error">
-            O tempo para pagamento expirou. Feche e tente novamente.
-          </p>
+          <>
+            <p className="payment-modal__error">O tempo para pagamento expirou.</p>
+            <button type="button" className="btn-add" onClick={() => setStep("form")}>
+              Gerar novo Pix
+            </button>
+          </>
         )}
 
         {step === "rejected" && (
-          <p className="payment-modal__error">
-            O pagamento foi recusado. Tente novamente.
-          </p>
+          <>
+            <p className="payment-modal__error">O pagamento foi recusado.</p>
+            <button type="button" className="btn-add" onClick={() => setStep("form")}>
+              Tentar novamente
+            </button>
+          </>
         )}
 
         {step === "pending" && payment && (

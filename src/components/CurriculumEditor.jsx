@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Formik, Field, Form, FieldArray, useFormikContext } from "formik";
 import CurriculumPreview from "./CurriculumPreview";
 import CurriculumStyles from "./CurriculumStyles";
 import ImageUploader from "./ImageUploader";
 import PaymentModal from "./PaymentModal";
+import FormikPersist from "./FormikPersist";
 import "./paymentModal.css";
 import useTheme from "../hooks/useTheme";
 import useFont from "../hooks/useFont";
@@ -47,6 +48,31 @@ const THEME_LABELS = {
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 const MAX_HTML_SIZE = 2 * 1024 * 1024; // 2 MB safety limit
+
+// Chave usada tanto aqui (carregar) quanto no <FormikPersist> (salvar).
+const DRAFT_STORAGE_KEY = "curriculo-editor-draft";
+
+/**
+ * Recupera o rascunho salvo no localStorage, se existir e for válido.
+ * Faz um merge raso com os valores padrão - assim, se novos campos
+ * forem adicionados no futuro (ex: um novo campo em "personal"), um
+ * rascunho antigo salvo antes dessa mudança não quebra o formulário
+ * por faltar a chave.
+ */
+function loadInitialValues() {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return initialValues;
+
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== "object") return initialValues;
+
+    return { ...initialValues, ...saved };
+  } catch (err) {
+    console.warn("Rascunho salvo estava corrompido - usando valores padrão:", err.message);
+    return initialValues;
+  }
+}
 
 /* ─── Initial values ───────────────────────────────────────── */
 const initialValues = {
@@ -753,10 +779,16 @@ const CurriculumEditor = () => {
     nextTheme,
   };
 
+  // Lido apenas uma vez, na montagem - Formik ignora mudanças posteriores
+  // na prop initialValues por padrão, o que já é o comportamento certo aqui.
+  const startingValues = useMemo(() => loadInitialValues(), []);
+
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+    <Formik initialValues={startingValues} onSubmit={handleSubmit}>
       {({ values, setFieldValue }) => (
         <div className="app-shell">
+          <FormikPersist name={DRAFT_STORAGE_KEY} />
+
           {/* ── Topbar ── */}
           <header className="topbar">
             <div className="topbar__brand">

@@ -4,7 +4,7 @@ import { showNotification } from "../utils/notyf";
 
 // Mesmo padrão do ImageUploader.jsx - antes esta URL estava fixa no
 // código, forçando rebuild pra trocar de ambiente e impedindo teste local.
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = "https://resume-generation-payment.vercel.app";
 const POLL_INTERVAL_MS = 3000;
 
 function onlyDigits(value) {

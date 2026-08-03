@@ -10,6 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.0",
+    "@mui/material": "^6.1.0",
+    "@payment-system-mp/react-widget": "github:jefferson-da-silva-santos/payment-widget-react",
+    "esbuild": "^0.28.1",
     "formik": "^2.4.9",
     "notyf": "^3.10.0",
     "react": "^19.2.0",

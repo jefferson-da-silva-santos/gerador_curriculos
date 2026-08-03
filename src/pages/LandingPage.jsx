@@ -228,7 +228,7 @@ const Hero = () => (
     <div
       className={styles.heroVisual}
       data-aos="fade-left"
-      data-aos-delay="150"
+
     >
       <div className={styles.heroCard}>
         <div className={styles.heroCardHeader}>
@@ -292,7 +292,7 @@ const Features = () => (
           key={feature.title}
           className={`${styles.featureCard} ${i === 0 ? styles.featureCardWide : ""}`}
           data-aos="fade-up"
-          data-aos-delay={i * 80}
+
         >
           <div className={styles.featureIcon}>
             <i className={`bx ${feature.icon}`} />
@@ -319,7 +319,7 @@ const TemplatesShowcase = () => (
     <div
       className={styles.templatesScroller}
       data-aos="fade-up"
-      data-aos-delay="100"
+
     >
       {TEMPLATES.map((template) => (
         <div key={template.id} className={styles.templateCard}>
@@ -448,7 +448,7 @@ const Testimonials = () => (
           key={t.name}
           className={styles.testimonialCard}
           data-aos="fade-up"
-          data-aos-delay={i * 100}
+
         >
           <i className={`bx bxs-quote-alt-left ${styles.quoteIcon}`} />
           <p>{t.quote}</p>
@@ -492,7 +492,7 @@ const Faq = () => {
         <h2>Tudo o que você precisa saber antes de começar</h2>
       </div>
 
-      <div className={styles.faqList} data-aos="fade-up" data-aos-delay="100">
+      <div >
         {FAQ_ITEMS.map((item, i) => (
           <FaqAccordionItem
             key={item.question}
@@ -549,12 +549,23 @@ const LandingPage = () => {
       easing: "ease-out-cubic",
     });
 
+    // Fontes web e imagens podem terminar de carregar DEPOIS do AOS.init,
+    // mudando a altura real da página - sem recalcular, o AOS "esquece"
+    // de revelar seções mais abaixo (ficam com opacity:0 pra sempre).
+    const handleLoad = () => AOS.refresh();
+    window.addEventListener("load", handleLoad);
+    const refreshTimeout = setTimeout(() => AOS.refresh(), 400);
+
     const handleCtaClick = () =>
       notyf.success("Abrindo o editor de currículos...");
     const ctas = document.querySelectorAll('a[href="/editor"]');
     ctas.forEach((cta) => cta.addEventListener("click", handleCtaClick));
-    return () =>
+
+    return () => {
+      window.removeEventListener("load", handleLoad);
+      clearTimeout(refreshTimeout);
       ctas.forEach((cta) => cta.removeEventListener("click", handleCtaClick));
+    };
   }, []);
 
   return (

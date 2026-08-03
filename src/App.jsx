@@ -8,6 +8,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/loading" element={<LandingPage />} />
       <Route
         path="/editor"
         element={

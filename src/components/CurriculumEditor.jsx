@@ -3,9 +3,17 @@ import { Formik, Field, Form, FieldArray, useFormikContext } from "formik";
 import CurriculumPreview from "./CurriculumPreview";
 import CurriculumStyles from "./CurriculumStyles";
 import ImageUploader from "./ImageUploader";
-import PaymentModal from "./PaymentModal";
+import PaymentWidgetSection from "./PaymentWidgetSection";
 import FormikPersist from "./FormikPersist";
-import "./paymentModal.css";
+import {
+  Autocomplete as MuiAutocomplete,
+  TextField as MuiTextField,
+  Slider as MuiSlider,
+  Select as MuiSelect,
+  MenuItem as MuiMenuItem,
+  FormControl as MuiFormControl,
+} from "@mui/material";
+import "./editorMui.css";
 import useTheme from "../hooks/useTheme";
 import useFont from "../hooks/useFont";
 import { renderToString } from "react-dom/server";
@@ -51,6 +59,20 @@ const MAX_HTML_SIZE = 2 * 1024 * 1024; // 2 MB safety limit
 
 // Chave usada tanto aqui (carregar) quanto no <FormikPersist> (salvar).
 const DRAFT_STORAGE_KEY = "curriculo-editor-draft";
+
+// Chave para persistir o tema da INTERFACE do editor (claro/escuro/slate) -
+// diferente do tema de cor do currículo em si (que já é salvo dentro do
+// próprio rascunho do Formik, em themeObject/paletteId).
+const UI_THEME_STORAGE_KEY = "curriculo-editor-ui-theme";
+
+function loadInitialUiTheme() {
+  try {
+    const saved = localStorage.getItem(UI_THEME_STORAGE_KEY);
+    return THEMES.includes(saved) ? saved : "light";
+  } catch {
+    return "light";
+  }
+}
 
 /**
  * Recupera o rascunho salvo no localStorage, se existir e for válido.
@@ -302,13 +324,21 @@ const SectionPersonal = ({ values, setFieldValue }) => (
                 </div>
                 <div className="field">
                   <label>Ícone</label>
-                  <Field name={`contact.links.${i}.icon`} as="select">
-                    {ICON_OPTIONS.map((o) => (
-                      <option key={o.id} value={o.class}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </Field>
+                  <MuiFormControl size="small" fullWidth className="mui-field-sm">
+                    <MuiSelect
+                      value={link.icon || "bx-link-alt"}
+                      onChange={(e) =>
+                        setFieldValue(`contact.links.${i}.icon`, e.target.value)
+                      }
+                    >
+                      {ICON_OPTIONS.map((o) => (
+                        <MuiMenuItem key={o.id} value={o.class}>
+                          <i className={`bx ${o.class}`} style={{ marginRight: 8 }} />
+                          {o.name}
+                        </MuiMenuItem>
+                      ))}
+                    </MuiSelect>
+                  </MuiFormControl>
                 </div>
                 <div className="link-item__fields">
                   <F label="Rótulo" name={`contact.links.${i}.label`} />
@@ -392,70 +422,133 @@ const SectionEducation = ({ values }) => (
 );
 
 /* ─── Section: Skills ──────────────────────────────────────── */
-const SectionSkills = ({ values }) => (
-  <div className="editor-section" id="section-skills">
-    <FieldArray name="skills">
-      {({ push, remove, swap }) => (
-        <>
-          {values.skills.map((_, i) => (
-            <div className="skill-row" key={i}>
-              <button
-                type="button"
-                className="btn-icon up-down"
-                onClick={() => swap(i, i - 1)}
-                disabled={i === 0}
-                title="Subir"
+// Lista curada de sugestões p/ o autocomplete de competências. O gerador
+// nasceu pensado para devs, mas o campo aceita qualquer texto livre —
+// isso é só uma lista de atalhos, não uma trava.
+const SKILL_SUGGESTIONS = [
+  "JavaScript", "TypeScript", "React", "React Native", "Next.js", "Vue.js",
+  "Node.js", "Express", "NestJS", "Python", "Django", "Flask", "Java",
+  "Spring Boot", "PHP", "Laravel", "Ruby on Rails", "Go", "C#", ".NET",
+  "PostgreSQL", "MySQL", "MongoDB", "Redis", "Docker", "Kubernetes",
+  "AWS", "Git", "CI/CD", "GraphQL", "Tailwind CSS", "Figma", "UI/UX",
+  "Scrum", "Comunicação", "Liderança", "Gestão de projetos", "Excel",
+];
+
+const SectionSkills = ({ values, setFieldValue }) => {
+  const [dragIndex, setDragIndex] = useState(null);
+  const [overIndex, setOverIndex] = useState(null);
+
+  const handleDrop = (targetIndex) => {
+    if (dragIndex === null || dragIndex === targetIndex) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
+    const reordered = [...values.skills];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+    setFieldValue("skills", reordered);
+    setDragIndex(null);
+    setOverIndex(null);
+  };
+
+  return (
+    <div className="editor-section" id="section-skills">
+      <FieldArray name="skills">
+        {({ push, remove }) => (
+          <>
+            <p className="field-hint skills-hint">
+              <i className="bx bx-move" /> Arraste pelo ícone para reordenar
+            </p>
+
+            {values.skills.map((skill, i) => (
+              <div
+                className={`skill-row skill-row--draggable ${
+                  overIndex === i ? "skill-row--drag-over" : ""
+                } ${dragIndex === i ? "skill-row--dragging" : ""}`}
+                key={i}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (overIndex !== i) setOverIndex(i);
+                }}
+                onDragLeave={() => setOverIndex((prev) => (prev === i ? null : prev))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(i);
+                }}
               >
-                <i className="bx bx-chevron-up" />
-              </button>
-              <button
-                type="button"
-                className="btn-icon up-down"
-                onClick={() => swap(i, i + 1)}
-                disabled={i === values.skills.length - 1}
-                title="Descer"
-              >
-                <i className="bx bx-chevron-down" />
-              </button>
-              <Field
-                name={`skills.${i}.name`}
-                type="text"
-                className="input-sm"
-                placeholder="Competência"
-              />
-              <Field
-                name={`skills.${i}.level`}
-                as="select"
-                className="input-sm"
-              >
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </Field>
-              <button
-                type="button"
-                className="btn-icon danger"
-                onClick={() => remove(i)}
-                title="Remover"
-              >
-                <i className="bx bx-trash" />
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            className="btn-add"
-            onClick={() => push({ name: "", level: 3 })}
-          >
-            <i className="bx bx-plus" /> Adicionar competência
-          </button>
-        </>
-      )}
-    </FieldArray>
-  </div>
-);
+                <span
+                  className="skill-row__handle"
+                  draggable
+                  onDragStart={() => setDragIndex(i)}
+                  onDragEnd={() => {
+                    setDragIndex(null);
+                    setOverIndex(null);
+                  }}
+                  title="Arrastar para reordenar"
+                >
+                  <i className="bx bx-dots-vertical-rounded" />
+                  <i className="bx bx-dots-vertical-rounded" />
+                </span>
+
+                <MuiAutocomplete
+                  freeSolo
+                  size="small"
+                  options={SKILL_SUGGESTIONS}
+                  value={skill.name}
+                  inputValue={skill.name}
+                  onInputChange={(_, newValue) =>
+                    setFieldValue(`skills.${i}.name`, newValue)
+                  }
+                  className="skill-row__name mui-field-sm"
+                  renderInput={(params) => (
+                    <MuiTextField
+                      {...params}
+                      placeholder="Competência"
+                      variant="outlined"
+                    />
+                  )}
+                />
+
+                <div className="skill-row__level">
+                  <MuiSlider
+                    size="small"
+                    value={skill.level}
+                    min={1}
+                    max={5}
+                    step={1}
+                    marks
+                    valueLabelDisplay="auto"
+                    onChange={(_, newValue) =>
+                      setFieldValue(`skills.${i}.level`, newValue)
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-icon danger"
+                  onClick={() => remove(i)}
+                  title="Remover"
+                >
+                  <i className="bx bx-trash" />
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              className="btn-add"
+              onClick={() => push({ name: "", level: 3 })}
+            >
+              <i className="bx bx-plus" /> Adicionar competência
+            </button>
+          </>
+        )}
+      </FieldArray>
+    </div>
+  );
+};
 
 /* ─── Section: Experience ──────────────────────────────────── */
 const SectionExperience = ({ values }) => (
@@ -636,7 +729,7 @@ const CurriculumEditor = () => {
   const { font, nextFont, prevFont } = useFont();
 
   const [activeSection, setActiveSection] = useState("labels");
-  const [uiTheme, setUiTheme] = useState("light");
+  const [uiTheme, setUiTheme] = useState(loadInitialUiTheme);
   const [zoom, setZoom] = useState(75);
   const [toasts, setToasts] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -644,12 +737,17 @@ const CurriculumEditor = () => {
   const [pendingExport, setPendingExport] = useState(null); // { html, email }
   const [menuOpen, setMenuOpen] = useState(false);
 
-  /* Apply UI theme to document */
+  /* Apply UI theme to document + salva a escolha para a próxima visita */
   useEffect(() => {
     if (uiTheme === "light") {
       document.documentElement.removeAttribute("data-theme");
     } else {
       document.documentElement.setAttribute("data-theme", uiTheme);
+    }
+    try {
+      localStorage.setItem(UI_THEME_STORAGE_KEY, uiTheme);
+    } catch {
+      // localStorage indisponível (modo privado, quota cheia etc.) - não é crítico
     }
   }, [uiTheme]);
 
@@ -889,7 +987,7 @@ const CurriculumEditor = () => {
                 />
                 <SectionObjective />
                 <SectionEducation values={values} />
-                <SectionSkills values={values} />
+                <SectionSkills values={values} setFieldValue={setFieldValue} />
                 <SectionExperience values={values} />
               </div>
             </aside>
@@ -952,9 +1050,9 @@ const CurriculumEditor = () => {
             </div>
           )}
 
-          {/* Payment modal */}
+          {/* Payment widget (Pix + Cartão), via @payment-system-mp/react-widget */}
           {showPaymentModal && (
-            <PaymentModal
+            <PaymentWidgetSection
               email={pendingExport?.email}
               onApproved={handlePaymentApproved}
               onClose={() => {

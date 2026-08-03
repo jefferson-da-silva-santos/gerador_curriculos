@@ -1,0 +1,105 @@
+/* ── MUI: encaixar no visual do editor (tokens já existentes) ───── */
+.mui-field-sm .MuiOutlinedInput-root,
+.mui-field-sm .MuiInputBase-root {
+  background: var(--bg-input);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+
+.mui-field-sm .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border);
+}
+
+.mui-field-sm .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border-strong);
+}
+
+.mui-field-sm .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent);
+}
+
+.mui-field-sm .MuiInputBase-input {
+  color: var(--text-primary);
+  padding: 7px 10px !important;
+}
+
+.mui-field-sm .MuiSvgIcon-root {
+  color: var(--text-muted);
+}
+
+/* ── Slider de nível de competência ──────────────────────────────── */
+.skill-row__level {
+  flex: 1;
+  min-width: 90px;
+  padding: 0 8px;
+}
+
+.skill-row__level .MuiSlider-root {
+  color: var(--accent);
+}
+
+.skill-row__level .MuiSlider-mark {
+  background: var(--border-strong);
+}
+
+.skill-row__level .MuiSlider-markLabel {
+  display: none; /* números 1-5 poluem visualmente numa faixa tão curta */
+}
+
+/* ── Drag-and-drop das competências ──────────────────────────────── */
+.skills-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.skill-row--draggable {
+  transition: transform var(--t), opacity var(--t), background var(--t);
+}
+
+.skill-row__handle {
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  padding: 4px 2px;
+  border-radius: var(--radius-sm);
+}
+
+.skill-row__handle:active {
+  cursor: grabbing;
+}
+
+.skill-row__handle:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.skill-row__handle i {
+  font-size: 12px;
+  line-height: 0.6;
+}
+
+.skill-row__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.skill-row--dragging {
+  opacity: 0.4;
+}
+
+.skill-row--drag-over {
+  background: var(--accent-dim);
+  border-radius: var(--radius-md);
+}
+
+/* ── Widget de pagamento oficial dentro do modal ─────────────────── */
+.payment-modal--widget {
+  max-width: 420px;
+  padding: 24px;
+}

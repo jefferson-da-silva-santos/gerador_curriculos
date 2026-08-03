@@ -111,6 +111,11 @@
 }
 
 /* ── Reset ────────────────────────────────────────────────── */
+html, body, #root {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;

@@ -1,50 +1,44 @@
-import { useState, useEffect } from "react";
-import { PaymentWidget } from "@payment-system-mp/react-widget";
-import { showNotification } from "../utils/notyf";
 import "./paymentModal.css";
+import { PaymentWidget } from "@payment-system-mp/react-widget";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 const PAYMENT_AMOUNT = Number(import.meta.env.VITE_PAYMENT_AMOUNT ?? 5.0);
 
+// Hex "de verdade" em vez de uma CSS var: o widget monta um tema do MUI
+// internamente (cálculo de contraste, variações de tom etc.), e isso
+// precisa de uma cor concreta - "var(--accent)" não resolve dentro do
+// JS do widget, só dentro do CSS deste app.
+const ACCENT_COLOR = "#4f46e5";
+
 /**
- * Modal que hospeda o <PaymentWidget> oficial. O widget fala apenas com
- * o NOSSO backend (nunca direto com o payment-system-mp) - por isso
- * buscamos a publicKey em {API_URL}/config antes de renderizar.
+ * Modal de pagamento em duas colunas — resumo do pedido + o widget
+ * oficial de checkout (Pix, cartão de crédito/débito).
  *
- * onApproved recebe o id do pagamento no payment-system-mp, que é o
- * mesmo "paymentId" que o backend valida em /gerar-curriculo antes de
- * liberar o PDF.
+ * O <PaymentWidget> é SEMPRE montado, sem condição - a publicKey é
+ * recebida pronta via prop (buscada assim que o CurriculumEditor monta,
+ * não quando este modal abre), então na prática ela já está disponível
+ * quando o usuário chega até aqui. Os avisos de erro/carregando ficam
+ * como informação complementar acima do widget, não como gate.
+ *
+ * Uso:
+ *   <PaymentWidgetSection
+ *     publicKey={paymentPublicKey}
+ *     configError={paymentConfigError}
+ *     email={pendingExport?.email}
+ *     onApproved={(paymentId) => { ... segue com a geração do PDF }}
+ *     onClose={() => setShowPaymentModal(false)}
+ *   />
  */
-const PaymentWidgetSection = ({ email, onApproved, onClose }) => {
-  const [publicKey, setPublicKey] = useState(null);
-  const [configError, setConfigError] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetch(`${API_URL}/config`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        if (!data?.publicKey) throw new Error("publicKey ausente na resposta.");
-        setPublicKey(data.publicKey);
-      })
-      .catch((err) => {
-        console.error("Erro ao buscar configuração de pagamento:", err);
-        if (!cancelled) setConfigError(err.message);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+const PaymentWidgetSection = ({
+  publicKey,
+  configError,
+  email,
+  onApproved,
+  onClose,
+}) => {
   return (
     <div className="payment-modal-overlay">
-      <div className="payment-modal payment-modal--widget">
+      <div className="payment-modal payment-modal--split">
         <button
           className="payment-modal__close"
           onClick={onClose}
@@ -54,40 +48,19 @@ const PaymentWidgetSection = ({ email, onApproved, onClose }) => {
           <i className="bx bx-x" />
         </button>
 
-        {configError && (
-          <p className="payment-modal__error">
-            Não foi possível carregar o pagamento agora. Tente novamente em instantes.
-          </p>
-        )}
-
-        {!configError && !publicKey && (
-          <div className="payment-modal__loading">
-            <div className="loading-spinner" />
-            <p>Carregando pagamento...</p>
-          </div>
-        )}
-
-        {publicKey && (
-          <PaymentWidget
-            apiBaseUrl={API_URL}
-            publicKey={publicKey}
-            amount={PAYMENT_AMOUNT}
-            description="Geração de currículo em PDF"
-            externalReference={`curriculo-${Date.now()}`}
-            methods={["PIX", "CREDIT_CARD", "DEBIT_CARD"]}
-            payer={email ? { email } : {}}
-            theme="light"
-            accentColor="var(--accent, #4f46e5)"
-            onPaymentApproved={(payment) => {
-              showNotification("success", "Pagamento aprovado!");
-              onApproved?.(payment.id);
-            }}
-            onError={(err) => {
-              console.error("Erro no pagamento:", err);
-              showNotification("error", "Falha ao processar o pagamento. Tente novamente.");
-            }}
-          />
-        )}
+        <PaymentWidget
+          apiBaseUrl={API_URL}
+          publicKey={publicKey}
+          amount={PAYMENT_AMOUNT}
+          description="Geração de currículo em PDF"
+          externalReference={`curriculo-${Date.now()}`}
+          methods={["PIX", "CREDIT_CARD", "DEBIT_CARD"]}
+          payer={email ? { email } : {}}
+          theme="light"
+          accentColor={ACCENT_COLOR}
+          onPaymentApproved={(payment) => onApproved?.(payment.id)}
+          onError={(err) => console.error("Erro no pagamento:", err)}
+        />
       </div>
     </div>
   );

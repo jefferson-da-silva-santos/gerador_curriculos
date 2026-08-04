@@ -91,7 +91,10 @@ function loadInitialValues() {
 
     return { ...initialValues, ...saved };
   } catch (err) {
-    console.warn("Rascunho salvo estava corrompido - usando valores padrão:", err.message);
+    console.warn(
+      "Rascunho salvo estava corrompido - usando valores padrão:",
+      err.message,
+    );
     return initialValues;
   }
 }
@@ -324,7 +327,11 @@ const SectionPersonal = ({ values, setFieldValue }) => (
                 </div>
                 <div className="field">
                   <label>Ícone</label>
-                  <MuiFormControl size="small" fullWidth className="mui-field-sm">
+                  <MuiFormControl
+                    size="small"
+                    fullWidth
+                    className="mui-field-sm"
+                  >
                     <MuiSelect
                       value={link.icon || "bx-link-alt"}
                       onChange={(e) =>
@@ -333,7 +340,10 @@ const SectionPersonal = ({ values, setFieldValue }) => (
                     >
                       {ICON_OPTIONS.map((o) => (
                         <MuiMenuItem key={o.id} value={o.class}>
-                          <i className={`bx ${o.class}`} style={{ marginRight: 8 }} />
+                          <i
+                            className={`bx ${o.class}`}
+                            style={{ marginRight: 8 }}
+                          />
                           {o.name}
                         </MuiMenuItem>
                       ))}
@@ -426,12 +436,44 @@ const SectionEducation = ({ values }) => (
 // nasceu pensado para devs, mas o campo aceita qualquer texto livre —
 // isso é só uma lista de atalhos, não uma trava.
 const SKILL_SUGGESTIONS = [
-  "JavaScript", "TypeScript", "React", "React Native", "Next.js", "Vue.js",
-  "Node.js", "Express", "NestJS", "Python", "Django", "Flask", "Java",
-  "Spring Boot", "PHP", "Laravel", "Ruby on Rails", "Go", "C#", ".NET",
-  "PostgreSQL", "MySQL", "MongoDB", "Redis", "Docker", "Kubernetes",
-  "AWS", "Git", "CI/CD", "GraphQL", "Tailwind CSS", "Figma", "UI/UX",
-  "Scrum", "Comunicação", "Liderança", "Gestão de projetos", "Excel",
+  "JavaScript",
+  "TypeScript",
+  "React",
+  "React Native",
+  "Next.js",
+  "Vue.js",
+  "Node.js",
+  "Express",
+  "NestJS",
+  "Python",
+  "Django",
+  "Flask",
+  "Java",
+  "Spring Boot",
+  "PHP",
+  "Laravel",
+  "Ruby on Rails",
+  "Go",
+  "C#",
+  ".NET",
+  "PostgreSQL",
+  "MySQL",
+  "MongoDB",
+  "Redis",
+  "Docker",
+  "Kubernetes",
+  "AWS",
+  "Git",
+  "CI/CD",
+  "GraphQL",
+  "Tailwind CSS",
+  "Figma",
+  "UI/UX",
+  "Scrum",
+  "Comunicação",
+  "Liderança",
+  "Gestão de projetos",
+  "Excel",
 ];
 
 const SectionSkills = ({ values, setFieldValue }) => {
@@ -471,7 +513,9 @@ const SectionSkills = ({ values, setFieldValue }) => {
                   e.preventDefault();
                   if (overIndex !== i) setOverIndex(i);
                 }}
-                onDragLeave={() => setOverIndex((prev) => (prev === i ? null : prev))}
+                onDragLeave={() =>
+                  setOverIndex((prev) => (prev === i ? null : prev))
+                }
                 onDrop={(e) => {
                   e.preventDefault();
                   handleDrop(i);
@@ -735,6 +779,35 @@ const CurriculumEditor = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingExport, setPendingExport] = useState(null); // { html, email }
+
+  // Busca a publicKey do pagamento assim que o EDITOR abre (não quando o
+  // modal abre) - assim, quando o usuário clicar em "Exportar PDF", o
+  // widget já nasce pronto pra montar, sem spinner de carregamento.
+  const [paymentPublicKey, setPaymentPublicKey] = useState(null);
+  const [paymentConfigError, setPaymentConfigError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(`${API_URL}/config`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        if (!data?.publicKey) throw new Error("publicKey ausente na resposta.");
+        setPaymentPublicKey(data.publicKey);
+      })
+      .catch((err) => {
+        console.error("Erro ao pré-carregar configuração de pagamento:", err);
+        if (!cancelled) setPaymentConfigError(err.message);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [menuOpen, setMenuOpen] = useState(false);
 
   /* Apply UI theme to document + salva a escolha para a próxima visita */
@@ -1050,9 +1123,13 @@ const CurriculumEditor = () => {
             </div>
           )}
 
-          {/* Payment widget (Pix + Cartão), via @payment-system-mp/react-widget */}
+          {/* Payment widget (Pix + Cartão), via @payment-system-mp/react-widget.
+              publicKey já veio pré-carregada (ver useEffect acima), então o
+              widget monta instantaneamente ao abrir, sem tela de loading. */}
           {showPaymentModal && (
             <PaymentWidgetSection
+              publicKey={paymentPublicKey}
+              configError={paymentConfigError}
               email={pendingExport?.email}
               onApproved={handlePaymentApproved}
               onClose={() => {

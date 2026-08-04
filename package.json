@@ -14,7 +14,7 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.0",
     "@mui/material": "^6.1.0",
-    "@payment-system-mp/react-widget": "github:jefferson-da-silva-santos/payment-widget-react",
+    "payment-widget-react": "git+https://github.com/jefferson-da-silva-santos/payment-widget-react.git",
     "aos": "^2.3.4",
     "esbuild": "^0.28.1",
     "formik": "^2.4.9",

@@ -17,7 +17,7 @@ import "./editorMui.css";
 import useTheme from "../hooks/useTheme";
 import useFont from "../hooks/useFont";
 import { renderToString } from "react-dom/server";
-
+import { useRef } from "react";
 /* ─── Constants ────────────────────────────────────────────── */
 const ICON_OPTIONS = [
   { id: 1, name: "Link Padrão", class: "bx-link-alt" },
@@ -780,34 +780,62 @@ const CurriculumEditor = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingExport, setPendingExport] = useState(null); // { html, email }
 
-  // Busca a publicKey do pagamento assim que o EDITOR abre (não quando o
-  // modal abre) - assim, quando o usuário clicar em "Exportar PDF", o
-  // painel já nasce pronto pra montar, sem spinner de carregamento.
   const [paymentPublicKey, setPaymentPublicKey] = useState(null);
   const [paymentConfigError, setPaymentConfigError] = useState(null);
 
+  // Usado apenas para descartar respostas de fetches antigos/abortados —
+  // NÃO impede que um novo fetch comece (isso era o bug anterior).
+  const configRequestIdRef = useRef(0);
+
   useEffect(() => {
-    let cancelled = false;
+    const requestId = ++configRequestIdRef.current;
+    const controller = new AbortController();
 
-    fetch(`${API_URL}/config`)
-      .then((res) => {
+    const fetchConfig = async (attempt = 1) => {
+      try {
+        const res = await fetch(`${API_URL}/config`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        if (!data?.publicKey) throw new Error("publicKey ausente na resposta.");
-        setPaymentPublicKey(data.publicKey);
-      })
-      .catch((err) => {
-        console.error("Erro ao pré-carregar configuração de pagamento:", err);
-        if (!cancelled) setPaymentConfigError(err.message);
-      });
 
-    return () => {
-      cancelled = true;
+        const rawText = await res.text();
+        if (!rawText) throw new Error("Resposta vazia do servidor.");
+
+        const payload = JSON.parse(rawText);
+        const publicKey = payload?.data?.publicKey ?? payload?.publicKey;
+
+        if (!publicKey) throw new Error("publicKey ausente na resposta.");
+
+        // Ignora resposta de uma chamada antiga/abortada
+        if (requestId !== configRequestIdRef.current) return;
+
+        setPaymentPublicKey(publicKey);
+        setPaymentConfigError(null);
+      } catch (err) {
+        // Abort é esperado no cleanup do StrictMode (dev) — não é falha real.
+        // Como uma nova chamada sempre é disparada no remount seguinte,
+        // não precisamos fazer nada aqui além de sair silenciosamente.
+        if (err.name === "AbortError") return;
+        if (requestId !== configRequestIdRef.current) return;
+
+        if (attempt < 4) {
+          setTimeout(() => fetchConfig(attempt + 1), attempt * 800);
+          return;
+        }
+
+        console.error("Erro ao pré-carregar configuração de pagamento:", err);
+        setPaymentConfigError(err.message);
+      }
     };
+
+    fetchConfig();
+
+    return () => controller.abort();
   }, []);
+  
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   /* Apply UI theme to document + salva a escolha para a próxima visita */

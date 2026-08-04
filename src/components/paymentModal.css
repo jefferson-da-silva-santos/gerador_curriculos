@@ -6,66 +6,94 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(15, 15, 20, 0.55);
-  backdrop-filter: blur(2px);
+  background: rgba(15, 15, 20, 0.6);
+  backdrop-filter: blur(4px);
   animation: payment-modal-fade-in 0.15s ease-out;
 }
 
 .payment-modal-panel {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 528px;
   max-height: 90vh;
   overflow-y: auto;
   background: var(--panel-bg, #ffffff);
   color: var(--text-color, #1a1a1a);
-  border-radius: 16px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
-  padding: 28px 24px 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.28),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 32px 28px 28px;
   animation: payment-modal-pop-in 0.18s ease-out;
+
+  /* Scrollbar customizada — combina com o resto do painel em vez da
+     barra cinza padrão do navegador */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.payment-modal-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.payment-modal-panel::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+.payment-modal-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .payment-modal-panel__close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 8px;
-  background: transparent;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.04);
   color: var(--text-muted, #666);
   cursor: pointer;
   font-size: 20px;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+  z-index: 1;
 }
 
 .payment-modal-panel__close:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-color, #1a1a1a);
 }
 
 .payment-modal-panel__header {
-  margin-bottom: 20px;
+  /* Espaço reservado à direita para o eyebrow nunca ficar atrás do
+     botão de fechar, mesmo em telas estreitas */
+  padding-right: 40px;
+  margin-bottom: 24px;
   text-align: left;
 }
 
 .payment-modal-panel__eyebrow {
   display: block;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent, #4f46e5);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .payment-modal-panel__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .payment-modal-panel__loading,
@@ -73,15 +101,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 32px 8px;
+  gap: 14px;
+  padding: 40px 12px;
   text-align: center;
   color: var(--text-muted, #666);
 }
 
 .payment-modal-panel__error i {
-  font-size: 28px;
+  font-size: 30px;
   color: #e64545;
+}
+
+.payment-modal-panel__error p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.payment-modal-panel__error .btn-add {
+  margin-top: 4px;
 }
 
 @keyframes payment-modal-fade-in {
@@ -96,7 +135,7 @@
 @keyframes payment-modal-pop-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(12px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -109,5 +148,17 @@
   .payment-modal-overlay,
   .payment-modal-panel {
     animation: none;
+  }
+}
+
+/* Telas pequenas — reduz padding lateral pra aproveitar melhor o espaço */
+@media (max-width: 420px) {
+  .payment-modal-overlay {
+    padding: 12px;
+  }
+
+  .payment-modal-panel {
+    padding: 24px 20px 20px;
+    border-radius: 16px;
   }
 }

@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { showNotification } from "../utils/notyf";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = "https://resume-generation-payment.vercel.app";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 

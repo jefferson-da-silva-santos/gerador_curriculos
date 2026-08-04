@@ -3,7 +3,7 @@ import { Formik, Field, Form, FieldArray, useFormikContext } from "formik";
 import CurriculumPreview from "./CurriculumPreview";
 import CurriculumStyles from "./CurriculumStyles";
 import ImageUploader from "./ImageUploader";
-import PaymentWidgetSection from "./PaymentWidgetSection";
+import PaymentModal from "./PaymentModal";
 import FormikPersist from "./FormikPersist";
 import {
   Autocomplete as MuiAutocomplete,
@@ -54,7 +54,7 @@ const THEME_LABELS = {
   "dark-slate": "Escuro Slate",
 };
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = "https://resume-generation-payment.vercel.app";
 const MAX_HTML_SIZE = 2 * 1024 * 1024; // 2 MB safety limit
 
 // Chave usada tanto aqui (carregar) quanto no <FormikPersist> (salvar).
@@ -782,7 +782,7 @@ const CurriculumEditor = () => {
 
   // Busca a publicKey do pagamento assim que o EDITOR abre (não quando o
   // modal abre) - assim, quando o usuário clicar em "Exportar PDF", o
-  // widget já nasce pronto pra montar, sem spinner de carregamento.
+  // painel já nasce pronto pra montar, sem spinner de carregamento.
   const [paymentPublicKey, setPaymentPublicKey] = useState(null);
   const [paymentConfigError, setPaymentConfigError] = useState(null);
 
@@ -877,7 +877,7 @@ const CurriculumEditor = () => {
     [themeObject, font, addToast, currentTemplate],
   );
 
-  /* Chamada quando o PaymentModal confirma que o Pix foi aprovado */
+  /* Chamada quando o PaymentModal confirma que o Pix/cartão foi aprovado */
   const handlePaymentApproved = useCallback(
     async (paymentId) => {
       if (!pendingExport) return;
@@ -1123,11 +1123,12 @@ const CurriculumEditor = () => {
             </div>
           )}
 
-          {/* Payment widget (Pix + Cartão), via @payment-system-mp/react-widget.
+          {/* Painel de pagamento (Pix + Cartão), via @payment-system-mp/react-widget.
               publicKey já veio pré-carregada (ver useEffect acima), então o
-              widget monta instantaneamente ao abrir, sem tela de loading. */}
+              widget monta instantaneamente ao abrir, centralizado na tela,
+              sem tela de loading. */}
           {showPaymentModal && (
-            <PaymentWidgetSection
+            <PaymentModal
               publicKey={paymentPublicKey}
               configError={paymentConfigError}
               email={pendingExport?.email}

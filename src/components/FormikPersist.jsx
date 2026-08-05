@@ -3,22 +3,6 @@ import { useEffect, useRef } from "react";
 
 const DEBOUNCE_MS = 500;
 
-/**
- * Salva o estado do formulário no localStorage automaticamente, com
- * debounce (evita gravar a cada tecla digitada - especialmente pesado
- * num formulário grande com arrays de skills/educação/experiência).
- *
- * Uso: coloque como filho de <Formik>, em qualquer lugar da árvore
- * (não desenha nada - só observa o contexto do Formik):
- *   <Formik ...>
- *     {() => (
- *       <>
- *         <FormikPersist name="curriculo-editor-draft" />
- *         ...resto do formulário...
- *       </>
- *     )}
- *   </Formik>
- */
 const FormikPersist = ({ name }) => {
   const { values } = useFormikContext();
   const timeoutRef = useRef(null);

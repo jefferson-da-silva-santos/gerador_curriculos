@@ -218,7 +218,6 @@
   border: 1px solid rgba(22, 163, 74, 0.25);
   border-radius: var(--radius-md);
   padding: 16px 18px;
-  margin-top: auto;
 }
 
 .payment-page__support i {

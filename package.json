@@ -10,15 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.0",
-    "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^6.1.0",
-    "@mui/material": "^6.1.0",
-    "payment-widget-react": "git+https://github.com/jefferson-da-silva-santos/payment-widget-react.git",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^6.5.0",
+    "@mui/material": "^6.5.0",
+    "@payment-system-mp/react-widget": "github:jefferson-da-silva-santos/payment-widget-react",
     "aos": "^2.3.4",
     "esbuild": "^0.28.1",
     "formik": "^2.4.9",
     "notyf": "^3.10.0",
+    "payment-widget-react": "git+https://github.com/jefferson-da-silva-santos/payment-widget-react.git",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.1.0"

@@ -16,11 +16,16 @@ const extractFontFamily = (fontStyles) => {
 // ativo no ThemeProvider e renderiza o componente correspondente.
 //
 // Anti-fraude (só no preview ao vivo, NUNCA no PDF final):
-//   - maskDataForPreview trunca objetivo/responsabilidades/descrições -
-//     dá pra conferir layout e estilo, mas não copiar o texto completo.
-//   - <PreviewWatermark /> cobre a tela com marca d'água repetida.
-// isForExport=true pula os dois - o PDF gerado usa os dados originais,
-// completos, sem nenhuma marca.
+//   - maskDataForPreview trunca texto longo e mascara contato/links -
+//     a defesa real, resistente a remoção de marca d'água via IA
+//     (ver comentário dentro do próprio maskDataForPreview.js).
+//   - <PreviewWatermark /> + o aviso fixo abaixo somam uma camada
+//     visual, mas não são a proteção principal.
+//   - user-select desligado + menu de clique direito bloqueado: barato
+//     de fazer, reduz cópia do que ainda está visível (não impede
+//     print, só atrapalha copiar/colar texto e salvar a foto).
+// isForExport=true pula tudo isso - o PDF gerado usa os dados
+// originais, completos, sem nenhuma marca ou máscara.
 const CurriculumPreview = ({ data, isForExport = false }) => {
   const { font } = useFont();
   const { templateId } = useTheme();
@@ -34,17 +39,45 @@ const CurriculumPreview = ({ data, isForExport = false }) => {
   const fontFamily = extractFontFamily(font?.styles);
 
   if (isForExport) {
-    // PDF final: dados originais, completos, sem marca d'água.
+    // PDF final: dados originais, completos, sem marca d'água/máscara.
     return <TemplateComponent data={data} fontFamily={fontFamily} />;
   }
 
   const previewData = maskDataForPreview(data);
 
   return (
-    <div style={{ position: "relative" }}>
+    <div
+      style={{ position: "relative", userSelect: "none" }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <CurriculumStyles />
       <TemplateComponent data={previewData} fontFamily={fontFamily} />
       <PreviewWatermark />
+
+      {/* Aviso único, legível, reforçando o que a marca d'água repetida já
+          sinaliza de forma mais discreta - não é a defesa principal, só
+          deixa claro pro usuário que aquilo ali é uma amostra mesmo. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: 12,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 51,
+          background: "rgba(20, 20, 20, 0.72)",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.04em",
+          padding: "6px 14px",
+          borderRadius: 999,
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        PRÉVIA — dados de contato e texto completos só no PDF
+      </div>
     </div>
   );
 };

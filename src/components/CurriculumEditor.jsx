@@ -924,7 +924,7 @@ const CurriculumEditor = () => {
               <div className="topbar__brand-icon">
                 <i className="bx bx-file" />
               </div>
-              <span>Gerador de Currículos</span>
+              <span>CurrículoPro</span>
             </div>
 
             <div className="topbar__divider" />

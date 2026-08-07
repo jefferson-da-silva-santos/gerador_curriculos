@@ -4,12 +4,13 @@ import CurriculumPreview from "./CurriculumPreview";
 import CurriculumStyles from "./CurriculumStyles";
 import ImageUploader from "./ImageUploader";
 import GeneratingOverlay from "./GeneratingOverlay";
+import FormikAutosave from "./FormikAutosave";
 import PaymentModal from "./PaymentModal";
 import "./paymentModal.css";
 import useTheme from "../hooks/useTheme";
 import useFont from "../hooks/useFont";
 import { renderToString } from "react-dom/server";
-
+import { getRandomInitialValues } from "../utils/consts";
 /* ─── Constants ────────────────────────────────────────────── */
 const ICON_OPTIONS = [
   { id: 1, name: "Link Padrão", class: "bx-link-alt" },
@@ -155,6 +156,50 @@ const initialValues = {
     },
   ],
 };
+
+// Precisa ser a MESMA chave que CurriculumEntry.jsx usa pra decidir
+// se pula a tela de escolha (manual vs. perguntas) direto pro editor.
+const DRAFT_STORAGE_KEY = "curriculo-editor-draft";
+
+const UI_THEME_STORAGE_KEY = "curriculo-ui-theme";
+
+function loadUiTheme() {
+  try {
+    const saved = localStorage.getItem(UI_THEME_STORAGE_KEY);
+    return THEMES.includes(saved) ? saved : "light";
+  } catch {
+    return "light";
+  }
+}
+
+function loadDraftOrDefault() {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return getRandomInitialValues();
+
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== "object") return getRandomInitialValues();
+
+    // merge raso com um perfil de exemplo aleatório - se um campo novo for
+    // adicionado no schema no futuro, um rascunho salvo antes dessa
+    // mudança não quebra o formulário por faltar a chave.
+    return { ...getRandomInitialValues(), ...saved };
+  } catch (err) {
+    console.warn(
+      "Rascunho salvo estava corrompido - usando valores padrão:",
+      err.message,
+    );
+    return getRandomInitialValues();
+  }
+}
+
+function hasStoredDraft() {
+  try {
+    return Boolean(localStorage.getItem(DRAFT_STORAGE_KEY));
+  } catch {
+    return false;
+  }
+}
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 const generateCurriculumHtml = (data, styles, fontLink) => {
@@ -612,8 +657,21 @@ const CurriculumEditor = ({ initialData } = {}) => {
   } = useTheme();
   const { font, nextFont, prevFont } = useFont();
 
+  // Prioridade: dados do wizard (initialData) > rascunho salvo > exemplo
+  // padrão. Calculado uma única vez, na montagem - Formik ignora
+  // mudanças posteriores na prop initialValues por padrão, então não
+  // precisa recalcular a cada render.
+  const [startingValues] = useState(() => initialData ?? loadDraftOrDefault());
+  // Se já veio de dados reais (wizard ou rascunho existente), o
+  // autosave começa a salvar de imediato. Se é só o exemplo de
+  // demonstração, só começa a salvar depois que o usuário editar
+  // alguma coisa de verdade (ver FormikAutosave.jsx).
+  const [startedFromRealData] = useState(
+    () => Boolean(initialData) || hasStoredDraft(),
+  );
+
   const [activeSection, setActiveSection] = useState("labels");
-  const [uiTheme, setUiTheme] = useState("light");
+  const [uiTheme, setUiTheme] = useState(loadUiTheme);
   const [zoom, setZoom] = useState(75);
   const [toasts, setToasts] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -621,12 +679,17 @@ const CurriculumEditor = ({ initialData } = {}) => {
   const [pendingExport, setPendingExport] = useState(null); // { html, email }
   const [menuOpen, setMenuOpen] = useState(false);
 
-  /* Apply UI theme to document */
+  /* Apply UI theme to document + persiste a escolha */
   useEffect(() => {
     if (uiTheme === "light") {
       document.documentElement.removeAttribute("data-theme");
     } else {
       document.documentElement.setAttribute("data-theme", uiTheme);
+    }
+    try {
+      localStorage.setItem(UI_THEME_STORAGE_KEY, uiTheme);
+    } catch {
+      /* localStorage indisponível - não é crítico */
     }
   }, [uiTheme]);
 
@@ -757,12 +820,13 @@ const CurriculumEditor = ({ initialData } = {}) => {
   };
 
   return (
-    <Formik
-      initialValues={initialData ?? initialValues}
-      onSubmit={handleSubmit}
-    >
+    <Formik initialValues={startingValues} onSubmit={handleSubmit}>
       {({ values, setFieldValue }) => (
         <div className="app-shell">
+          <FormikAutosave
+            storageKey={DRAFT_STORAGE_KEY}
+            forceInitialSave={startedFromRealData}
+          />
           {/* ── Topbar ── */}
           <header className="topbar">
             <div className="topbar__brand">

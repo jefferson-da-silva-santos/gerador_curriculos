@@ -1,11 +1,11 @@
-// Modelo "Sidebar" — é o layout original do projeto (coluna lateral com foto
-// + coluna principal), preservado 100% igual ao antigo CurriculumPreview.jsx.
+import { Icon } from "../utils/icons";
+import { BOXICON_TO_SVG_NAME } from "../utils/consts";
 
 const renderSkillCircles = (level) => {
   const circles = [];
   for (let i = 1; i <= 5; i++) {
     circles.push(
-      <div key={i} className={`circle ${i <= level ? "cl" : ""}`}></div>
+      <div key={i} className={`circle ${i <= level ? "cl" : ""}`}></div>,
     );
   }
   return <div className="circles">{circles}</div>;
@@ -40,29 +40,29 @@ const TemplateSidebar = ({ data, fontFamily }) => {
           <h2 className="title">{labels.personalData}</h2>
           <ul className="list">
             <li>
-              <i className="bx bx-user"></i>
+              <Icon name="user" />
               {data.personal.fullName}
             </li>
             <li>
-              <i className="bx bxs-envelope"></i>
+              <Icon name="envelope" />
               <a href={`mailto:${data.contact.email}`}>
                 E-mail: {data.contact.email}
               </a>
             </li>
             <li>
-              <i className="bx bxs-phone-call"></i>
+              <Icon name="phone" />
               <a href={`tel:${data.contact.phone}`}>
                 Telefone: {data.contact.phone}
               </a>
             </li>
             <li>
-              <i className="bx bxs-home"></i>
+              <Icon name="home" />
               <span>Endereço: {data.contact.address}</span>
             </li>
 
             {data.contact.links.map((link, index) => (
               <li key={index}>
-                <i className={`bx ${link.icon}`}></i>
+                <Icon name={BOXICON_TO_SVG_NAME[link.icon] || "link"} />
                 <a href={link.url} target="_blank" rel="noreferrer">
                   {link.label}: {link.handle}
                 </a>
@@ -128,7 +128,7 @@ const TemplateSidebar = ({ data, fontFamily }) => {
                 <ul className="list">
                   {exp.responsibilities.map((resp, i) => (
                     <li key={i}>
-                      <i className="bx bxs-circle"></i>
+                      <Icon name="dot" size={8} style={{ marginTop: 6 }} />
                       <span dangerouslySetInnerHTML={{ __html: resp }} />
                     </li>
                   ))}

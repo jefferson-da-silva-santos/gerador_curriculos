@@ -48,25 +48,25 @@ export const stylesCommon = (fontStyles) => {
 
     /* Container: ocupar 100% da altura da página */
     .container {
-        width: 100%;
-        min-height: 100vh;
-        display: grid;
-        grid-template-columns: 1fr 2fr;
-        column-gap: 0;
-        margin: 0 auto;
-    }
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: stretch;
+    column-gap: 0;
+    margin: 0 auto;
+}
 
-    /* Col1 */
-    .container .col1 {
-        background-color: rgb(0 40 75 / 3%); /* Este é um estilo base que pode ser mantido ou movido */
-        position: relative;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        gap: 0;
-    }
+.container .col1 {
+    flex: 0 0 33.333%;
+    background-color: rgb(0 40 75 / 3%);
+    position: relative;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0;
+}
 
     /* Col1 Row1 */
     .container .col1 .row1 {
@@ -186,15 +186,16 @@ export const stylesCommon = (fontStyles) => {
         border-radius: 50%;
     }
     
-    /* Col2 */
-    .container .col2 {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: baseline;
-        gap: 0;
-    }
+   /* Col2 */
+.container .col2 {
+    flex: 1 1 auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: baseline;
+    gap: 0;
+}
 
     .container .col2 .row1 {
         padding: 1rem;

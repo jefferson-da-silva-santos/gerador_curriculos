@@ -264,7 +264,8 @@ html, body, #root {
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
-  max-width: 120px;
+  width: 120px;
+  flex: 0 0 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   border-left: 1px solid var(--border);
@@ -272,6 +273,7 @@ html, body, #root {
   height: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 /* Theme toggle button */
@@ -329,6 +331,74 @@ html, body, #root {
 .btn-generate:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Botão "Exportar PDF" — efeito de destaque ───────────── */
+.btn-generate {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  animation: btnGeneratePulse 2.4s ease-in-out infinite;
+}
+
+/* Glow pulsante ao redor do botão */
+@keyframes btnGeneratePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+
+/* Brilho deslizante passando pelo botão */
+.btn-generate::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  animation: btnGenerateShine 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes btnGenerateShine {
+  0%   { left: -60%; }
+  35%  { left: 130%; }
+  100% { left: 130%; }
+}
+
+/* Pausa o efeito no hover (o usuário já está prestando atenção) */
+.btn-generate:hover {
+  animation: none;
+}
+.btn-generate:hover::before {
+  animation: none;
+  opacity: 0;
+}
+
+/* Sem efeito quando desabilitado */
+.btn-generate:disabled {
+  animation: none;
+}
+.btn-generate:disabled::before {
+  display: none;
+}
+
+/* Respeita quem prefere menos movimento na tela */
+@media (prefers-reduced-motion: reduce) {
+  .btn-generate,
+  .btn-generate::before {
+    animation: none;
+  }
 }
 
 .btn-generate i { font-size: 14px; }
@@ -1223,3 +1293,191 @@ html, body, #root {
 
 body.is-submitting * { pointer-events: none !important; }
 body.is-submitting .btn-generate { opacity: 0.6; }
+
+
+.field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  transition: color 150ms ease;
+}
+
+.field:focus-within label {
+  color: var(--accent);
+}
+
+.field input,
+.field textarea,
+.field select {
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 9px 12px;
+  width: 100%;
+  outline: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.field input:hover,
+.field textarea:hover,
+.field select:hover {
+  border-color: var(--border-strong);
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.field textarea { resize: vertical; min-height: 132px; }
+
+.field select {
+  cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 16px) center, calc(100% - 11px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 30px;
+}
+
+
+.item-card,
+.link-item {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.item-card:hover,
+.link-item:hover {
+  border-color: var(--border-strong);
+}
+
+.item-card:focus-within,
+.link-item:focus-within {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.item-card__header,
+.link-item__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.item-card__label,
+.link-item__icon-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-card__label i,
+.link-item__icon-badge i {
+  font-size: 14px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+
+.btn-add {
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 120ms ease;
+}
+
+.btn-add:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btn-add:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 120ms ease;
+}
+
+.btn-icon:hover {
+  transform: scale(1.08);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+.section-block__title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-block__title::before {
+  content: "";
+  width: 3px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.field { gap: 6px; }
+.section-block { gap: 14px; }
+.editor-section.active { gap: 20px; }

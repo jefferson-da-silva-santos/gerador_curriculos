@@ -12,6 +12,81 @@ const LINK_PLATFORMS = [
   { id: "portfolio", label: "Portfólio", icon: "bx-globe" },
 ];
 
+/* ─── Áreas de atuação ─────────────────────────────────────── */
+// Cada área ajusta só os EXEMPLOS mostrados (placeholders) — o dado
+// salvo é sempre o texto que o usuário digitou, nunca o placeholder.
+const AREA_OPTIONS = [
+  {
+    id: "dev",
+    icon: "bx-code-alt",
+    title: "Desenvolvedor(a)",
+    desc: "Exemplos com stacks, repositórios e projetos técnicos.",
+  },
+  {
+    id: "comercio",
+    icon: "bx-store",
+    title: "Comércio / Mercado",
+    desc: "Exemplos para vendas, caixa, reposição, atacarejo.",
+  },
+  {
+    id: "alimentacao",
+    icon: "bx-food-menu",
+    title: "Alimentação",
+    desc: "Exemplos para lanchonete, restaurante, cozinha, atendimento.",
+  },
+  {
+    id: "outra",
+    icon: "bx-briefcase",
+    title: "Outra área",
+    desc: "Exemplos gerais, pra qualquer profissão.",
+  },
+];
+
+const AREA_PLACEHOLDERS = {
+  dev: {
+    role: "Desenvolvedora Full Stack",
+    objective:
+      "Atuar como desenvolvedora Full Stack, criando soluções escaláveis e contribuindo em times ágeis...",
+    course: "Análise e Desenvolvimento de Sistemas",
+    skills: "React, Node.js, PostgreSQL...",
+    expRole: "Desenvolvedora Jr",
+    activities:
+      "Desenvolvimento de features em React\nIntegração com APIs REST\nCorreção de bugs em produção",
+  },
+  comercio: {
+    role: "Operador(a) de Caixa",
+    objective:
+      "Atuar na área de vendas e atendimento, contribuindo com organização, agilidade no caixa e bom relacionamento com o cliente...",
+    course: "Ensino Médio Completo",
+    skills:
+      "Atendimento ao cliente, Operação de caixa, Reposição de estoque...",
+    expRole: "Repositor(a)",
+    activities:
+      "Reposição e organização de produtos nas gôndolas\nConferência de validade e estoque\nAtendimento e orientação aos clientes",
+  },
+  alimentacao: {
+    role: "Atendente de Lanchonete",
+    objective:
+      "Atuar na área de alimentação, com foco em atendimento rápido, boas práticas de higiene e trabalho em equipe...",
+    course: "Ensino Médio Completo",
+    skills:
+      "Atendimento ao público, Preparo de alimentos, Higiene e segurança alimentar...",
+    expRole: "Atendente de Balcão",
+    activities:
+      "Atendimento e montagem de pedidos\nOperação de caixa e controle de comandas\nLimpeza e organização da área de trabalho",
+  },
+  outra: {
+    role: "Analista de Marketing",
+    objective:
+      "Atuar na área de marketing, aplicando análise de dados e criatividade para gerar resultados...",
+    course: "Administração de Empresas",
+    skills: "Excel avançado, Gestão de projetos...",
+    expRole: "Analista",
+    activities:
+      "Atendimento a clientes\nOrganização de relatórios mensais\nSuporte à equipe de vendas",
+  },
+};
+
 const EMPTY_EDUCATION = {
   course: "",
   institution: "",
@@ -98,7 +173,9 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
     return () => clearTimeout(timeout);
   }, [step, answers]);
 
-  const isDev = answers.area === "dev";
+  // Placeholders da área ativa - cai em "outra" se ainda não escolheu nada.
+  const areaPlaceholders =
+    AREA_PLACEHOLDERS[answers.area] ?? AREA_PLACEHOLDERS.outra;
 
   function update(field, value) {
     setAnswers((prev) => ({ ...prev, [field]: value }));
@@ -282,28 +359,18 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
               perguntas.
             </p>
             <div className={styles.choiceGrid}>
-              <button
-                type="button"
-                className={`${styles.choiceCard} ${answers.area === "dev" ? styles["choiceCard--active"] : ""}`}
-                onClick={() => update("area", "dev")}
-              >
-                <i className={`bx bx-code-alt ${styles.choiceIcon}`} />
-                <span className={styles.choiceTitle}>Desenvolvedor(a)</span>
-                <span className={styles.choiceDesc}>
-                  Exemplos com stacks, repositórios e projetos técnicos.
-                </span>
-              </button>
-              <button
-                type="button"
-                className={`${styles.choiceCard} ${answers.area === "outra" ? styles["choiceCard--active"] : ""}`}
-                onClick={() => update("area", "outra")}
-              >
-                <i className={`bx bx-briefcase ${styles.choiceIcon}`} />
-                <span className={styles.choiceTitle}>Outra área</span>
-                <span className={styles.choiceDesc}>
-                  Exemplos gerais, pra qualquer profissão.
-                </span>
-              </button>
+              {AREA_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={`${styles.choiceCard} ${answers.area === opt.id ? styles["choiceCard--active"] : ""}`}
+                  onClick={() => update("area", opt.id)}
+                >
+                  <i className={`bx ${opt.icon} ${styles.choiceIcon}`} />
+                  <span className={styles.choiceTitle}>{opt.title}</span>
+                  <span className={styles.choiceDesc}>{opt.desc}</span>
+                </button>
+              ))}
             </div>
           </>
         )}
@@ -363,9 +430,7 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
                 className={styles.input}
                 value={answers.role}
                 onChange={(e) => update("role", e.target.value)}
-                placeholder={
-                  isDev ? "Desenvolvedora Full Stack" : "Analista de Marketing"
-                }
+                placeholder={areaPlaceholders.role}
               />
             </div>
           </>
@@ -477,11 +542,7 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
                 onChange={(e) =>
                   update("objective", e.target.value.slice(0, 500))
                 }
-                placeholder={
-                  isDev
-                    ? "Atuar como desenvolvedora Full Stack, criando soluções escaláveis e contribuindo em times ágeis..."
-                    : "Atuar na área de marketing, aplicando análise de dados e criatividade para gerar resultados..."
-                }
+                placeholder={areaPlaceholders.objective}
               />
               <span className={styles.charCount}>
                 {answers.objective.length}/500
@@ -523,11 +584,7 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
                     onChange={(e) =>
                       updateEducation(index, "course", e.target.value)
                     }
-                    placeholder={
-                      isDev
-                        ? "Análise e Desenvolvimento de Sistemas"
-                        : "Administração de Empresas"
-                    }
+                    placeholder={areaPlaceholders.course}
                   />
                 </div>
                 <div className={styles.fieldRow}>
@@ -599,11 +656,7 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
                     addSkill();
                   }
                 }}
-                placeholder={
-                  isDev
-                    ? "React, Node.js, PostgreSQL..."
-                    : "Excel avançado, Gestão de projetos..."
-                }
+                placeholder={areaPlaceholders.skills}
               />
               <button
                 type="button"
@@ -682,7 +735,7 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
                       onChange={(e) =>
                         updateExperience(index, "role", e.target.value)
                       }
-                      placeholder={isDev ? "Desenvolvedora Jr" : "Analista"}
+                      placeholder={areaPlaceholders.expRole}
                     />
                   </div>
                   <div className={styles.field}>
@@ -731,11 +784,7 @@ export default function CurriculumWizard({ onComplete, onCancel }) {
                     onChange={(e) =>
                       updateExperience(index, "activitiesText", e.target.value)
                     }
-                    placeholder={
-                      isDev
-                        ? "Desenvolvimento de features em React\nIntegração com APIs REST\nCorreção de bugs em produção"
-                        : "Atendimento a clientes\nOrganização de relatórios mensais\nSuporte à equipe de vendas"
-                    }
+                    placeholder={areaPlaceholders.activities}
                   />
                   <span className={styles.hint}>
                     Cada linha vira um item da sua experiência - no máximo 6

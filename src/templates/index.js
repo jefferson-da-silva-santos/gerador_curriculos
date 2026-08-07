@@ -6,6 +6,8 @@ import TemplateExecutive from "./TemplateExecutive";
 import TemplateCompact from "./TemplateCompact";
 import TemplateCreative from "./TemplateCreative";
 import TemplateCorporate from "./TemplateCorporate";
+import TemplatePopular from "./TemplatePopular";
+import TemplateDireto from "./TemplateDireto";
 
 import { modernLayout } from "./layouts/modernLayout";
 import { minimalLayout } from "./layouts/minimalLayout";
@@ -14,6 +16,8 @@ import { executiveLayout } from "./layouts/executiveLayout";
 import { compactLayout } from "./layouts/compactLayout";
 import { creativeLayout } from "./layouts/creativeLayout";
 import { corporateLayout } from "./layouts/corporateLayout";
+import { popularLayout } from "./layouts/popularLayout";
+import { diretoLayout } from "./layouts/diretoLayout";
 
 import * as legacyThemeStyles from "../utils/themeStyles";
 import { PALETTES, SIDEBAR_THEME_FN_NAME, getPaletteById } from "../utils/palettes";
@@ -103,6 +107,27 @@ export const TEMPLATES = {
     getStyles: (fontStyles, paletteId) => {
       const palette = getPaletteById(paletteId);
       return corporateLayout(fontStyles, palette.rgb);
+    },
+  },
+
+  popular: {
+    id: "popular",
+    label: "Popular",
+    description: "Com foto, cabeçalho colorido e competências em tags — ideal para atendimento, comércio e serviços.",
+    Component: TemplatePopular,
+    getStyles: (fontStyles, paletteId) => {
+      const palette = getPaletteById(paletteId);
+      return popularLayout(fontStyles, palette.rgb);
+    },
+  },
+  direto: {
+    id: "direto",
+    label: "Direto ao Ponto",
+    description: "Sem foto, objetivo e fácil de ler — bom para qualquer área, sem cara de nicho.",
+    Component: TemplateDireto,
+    getStyles: (fontStyles, paletteId) => {
+      const palette = getPaletteById(paletteId);
+      return diretoLayout(fontStyles, palette.rgb);
     },
   },
 };

@@ -47,7 +47,7 @@ const THEME_LABELS = {
   "dark-slate": "Escuro Slate",
 };
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = "https://resume-generation-payment.vercel.app";
 const MAX_HTML_SIZE = 2 * 1024 * 1024; // 2 MB safety limit
 
 /* ─── Initial values ───────────────────────────────────────── */

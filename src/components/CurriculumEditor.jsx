@@ -679,6 +679,36 @@ const CurriculumEditor = ({ initialData } = {}) => {
   const [pendingExport, setPendingExport] = useState(null); // { html, email }
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Busca a publicKey do pagamento assim que o EDITOR abre (não quando o
+  // modal abre) - assim, quando o usuário clicar em "Exportar PDF", o
+  // PaymentModal já nasce pronto pra montar o widget, sem spinner de
+  // carregamento. Extraída como função (não só inline no useEffect) pra
+  // poder ser chamada de novo pelo botão "Tentar novamente" do PaymentModal.
+  const [paymentPublicKey, setPaymentPublicKey] = useState(null);
+  const [paymentConfigError, setPaymentConfigError] = useState(null);
+
+  const fetchPaymentConfig = useCallback(() => {
+    setPaymentConfigError(null);
+
+    fetch(`${API_URL}/config`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!data?.publicKey) throw new Error("publicKey ausente na resposta.");
+        setPaymentPublicKey(data.publicKey);
+      })
+      .catch((err) => {
+        console.error("Erro ao pré-carregar configuração de pagamento:", err);
+        setPaymentConfigError(err.message);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchPaymentConfig();
+  }, [fetchPaymentConfig]);
+
   /* Apply UI theme to document + persiste a escolha */
   useEffect(() => {
     if (uiTheme === "light") {
@@ -984,8 +1014,11 @@ const CurriculumEditor = ({ initialData } = {}) => {
           {/* Payment modal */}
           {showPaymentModal && (
             <PaymentModal
+              publicKey={paymentPublicKey}
+              configError={paymentConfigError}
               email={pendingExport?.email}
               onApproved={handlePaymentApproved}
+              onRetry={fetchPaymentConfig}
               onClose={() => {
                 setShowPaymentModal(false);
                 setPendingExport(null);

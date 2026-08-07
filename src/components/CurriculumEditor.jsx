@@ -831,7 +831,7 @@ const CurriculumEditor = ({ initialData } = {}) => {
           <header className="topbar">
             <div className="topbar__brand">
               <img src="logo.png" alt="" className="logo-image" />
-              <span>Crie seu </span>
+              <span>Crie seu currículo</span>
             </div>
 
             <div className="topbar__divider" />

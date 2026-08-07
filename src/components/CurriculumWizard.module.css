@@ -1,0 +1,626 @@
+/* ARQUIVO: src/components/CurriculumWizard.module.css
+   ==========================================================
+   Paleta índigo/violeta consistente com o resto do projeto
+   (PaymentWidget usa #6d5ef8/#818cf8) - ajuste as variáveis abaixo
+   se/quando você mandar o CSS de referência da marca.
+   ========================================================== */
+
+.root {
+  --wz-indigo: #6d5ef8;
+  --wz-violet: #a78bfa;
+  --wz-ink: #1e1b2e;
+  --wz-ink-soft: #4b4560;
+  --wz-muted: #6b7280;
+  --wz-bg: #fbfaff;
+  --wz-card: #ffffff;
+  --wz-border: #e9e5f5;
+  --wz-success: #16a34a;
+  --wz-radius-lg: 20px;
+  --wz-radius-md: 12px;
+  --wz-shadow: 0 20px 48px rgba(109, 94, 248, 0.14);
+  --wz-font-heading: "Sora", -apple-system, BlinkMacSystemFont, sans-serif;
+  --wz-font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  min-height: 100dvh;
+  background: var(--wz-bg);
+  font-family: var(--wz-font-body);
+  color: var(--wz-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 60px;
+}
+
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Cabeçalho / progresso ---------- */
+.header {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stepLabel {
+  font-family: var(--wz-font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wz-muted);
+  letter-spacing: 0.02em;
+}
+
+.exitBtn {
+  background: transparent;
+  border: none;
+  color: var(--wz-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.exitBtn:hover {
+  background: rgba(109, 94, 248, 0.08);
+  color: var(--wz-indigo);
+}
+
+.progressTrack {
+  height: 6px;
+  background: var(--wz-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--wz-indigo), var(--wz-violet));
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- Cartão do passo ---------- */
+.card {
+  width: 100%;
+  max-width: 640px;
+  background: var(--wz-card);
+  border: 1px solid var(--wz-border);
+  border-radius: var(--wz-radius-lg);
+  box-shadow: var(--wz-shadow);
+  padding: 40px;
+  animation: wz-step-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes wz-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.card--leaving {
+  animation: wz-step-out 0.22s ease forwards;
+}
+@keyframes wz-step-out {
+  to {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wz-indigo);
+  background: rgba(109, 94, 248, 0.1);
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--wz-font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--wz-muted);
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+/* ---------- Campos ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--wz-ink-soft);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border: 1.5px solid var(--wz-border);
+  border-radius: var(--wz-radius-md);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: var(--wz-font-body);
+  color: var(--wz-ink);
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--wz-indigo);
+  box-shadow: 0 0 0 4px rgba(109, 94, 248, 0.12);
+}
+
+.textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.hint {
+  font-size: 11.5px;
+  color: var(--wz-muted);
+}
+
+.charCount {
+  font-size: 11px;
+  color: var(--wz-muted);
+  text-align: right;
+}
+
+/* ---------- Cartões de escolha (área de atuação) ---------- */
+.choiceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.choiceCard {
+  border: 1.5px solid var(--wz-border);
+  border-radius: var(--wz-radius-md);
+  padding: 20px 16px;
+  text-align: left;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.choiceCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(109, 94, 248, 0.14);
+}
+.choiceCard--active {
+  border-color: var(--wz-indigo);
+  background: rgba(109, 94, 248, 0.05);
+}
+
+.choiceIcon {
+  font-size: 22px;
+  color: var(--wz-indigo);
+}
+
+.choiceTitle {
+  font-family: var(--wz-font-heading);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.choiceDesc {
+  font-size: 12.5px;
+  color: var(--wz-muted);
+  line-height: 1.4;
+}
+
+/* ---------- Toggle de links ---------- */
+.linkToggleRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.linkToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid var(--wz-border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wz-ink-soft);
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.linkToggle--active {
+  border-color: var(--wz-indigo);
+  background: var(--wz-indigo);
+  color: #fff;
+}
+
+.linkInputWrap {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+.linkInputWrap--open {
+  max-height: 80px;
+  opacity: 1;
+  margin-bottom: 14px;
+}
+
+/* ---------- Skills (tags + nível) ---------- */
+.skillAddRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.skillAddRow .input {
+  flex: 1;
+}
+
+.skillList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skillItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1.5px solid var(--wz-border);
+  border-radius: var(--wz-radius-md);
+  padding: 10px 12px;
+  animation: wz-pop-in 0.25s ease;
+}
+
+@keyframes wz-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.skillName {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.skillDots {
+  display: flex;
+  gap: 4px;
+}
+
+.skillDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--wz-border);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.skillDot:hover {
+  transform: scale(1.15);
+}
+.skillDot--filled {
+  background: linear-gradient(135deg, var(--wz-indigo), var(--wz-violet));
+}
+
+.skillRemove {
+  background: transparent;
+  border: none;
+  color: var(--wz-muted);
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
+  line-height: 1;
+}
+.skillRemove:hover {
+  color: #dc2626;
+}
+
+/* ---------- Blocos repetíveis (formação / experiência) ---------- */
+.repeatBlock {
+  border: 1.5px solid var(--wz-border);
+  border-radius: var(--wz-radius-md);
+  padding: 18px;
+  margin-bottom: 14px;
+  position: relative;
+  animation: wz-pop-in 0.25s ease;
+}
+
+.repeatBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.repeatBlockTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--wz-indigo);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.removeBlockBtn {
+  background: transparent;
+  border: none;
+  color: var(--wz-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+.removeBlockBtn:hover {
+  color: #dc2626;
+}
+
+.addBlockBtn {
+  width: 100%;
+  border: 1.5px dashed var(--wz-border);
+  border-radius: var(--wz-radius-md);
+  padding: 12px;
+  background: transparent;
+  color: var(--wz-indigo);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.addBlockBtn:hover {
+  border-color: var(--wz-indigo);
+  background: rgba(109, 94, 248, 0.05);
+}
+
+/* ---------- Upload de foto (sobrescreve as classes globais do
+   ImageUploader, mas só aqui dentro - o resto do app continua com o
+   visual original dele) ---------- */
+.photoUploadWrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+
+.photoUploadWrap :global(.image-uploader) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.photoUploadWrap :global(.image-uploader__preview) {
+  width: 108px;
+  height: 108px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(109, 94, 248, 0.1), rgba(167, 139, 250, 0.1));
+  border: 2px dashed var(--wz-border);
+  color: var(--wz-indigo);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  animation: wz-pop-in 0.3s ease;
+}
+
+.photoUploadWrap :global(.image-uploader__preview:hover) {
+  border-color: var(--wz-indigo);
+  transform: scale(1.03);
+}
+
+.photoUploadWrap :global(.image-uploader__preview img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 999px;
+}
+
+.photoUploadWrap :global(.image-uploader__actions) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.photoUploadWrap :global(.btn-add) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid var(--wz-indigo);
+  color: var(--wz-indigo);
+  background: #fff;
+  font-family: var(--wz-font-body);
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.photoUploadWrap :global(.btn-add:hover) {
+  background: var(--wz-indigo);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.photoUploadWrap :global(.field-hint) {
+  font-size: 11.5px;
+  color: var(--wz-muted);
+  text-align: center;
+  margin: 0;
+}
+
+/* ---------- Navegação ---------- */
+.navRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: var(--wz-font-body);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: linear-gradient(90deg, var(--wz-indigo), var(--wz-violet));
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(109, 94, 248, 0.28);
+}
+.btn--primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(109, 94, 248, 0.36);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--wz-ink-soft);
+  border: 1.5px solid var(--wz-border);
+}
+.btn--ghost:hover:not(:disabled) {
+  border-color: var(--wz-indigo);
+  color: var(--wz-indigo);
+}
+
+/* ---------- Revisão final ---------- */
+.reviewGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.reviewItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--wz-border);
+}
+.reviewItem:last-child {
+  border-bottom: none;
+}
+
+.reviewLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--wz-muted);
+  flex-shrink: 0;
+}
+
+.reviewValue {
+  font-size: 13.5px;
+  color: var(--wz-ink);
+  text-align: right;
+}
+
+.successPulse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--wz-success);
+  font-size: 28px;
+  margin: 0 auto 18px;
+  animation: wz-pulse 1.4s ease-in-out infinite;
+}
+@keyframes wz-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.25); }
+  50% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+}
+
+@media (max-width: 560px) {
+  .card { padding: 26px 20px; }
+  .choiceGrid,
+  .fieldRow { grid-template-columns: 1fr; }
+  .title { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .skillItem,
+  .repeatBlock,
+  .successPulse {
+    animation: none;
+  }
+}

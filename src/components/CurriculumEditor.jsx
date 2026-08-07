@@ -1,19 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Formik, Field, Form, FieldArray, useFormikContext } from "formik";
 import CurriculumPreview from "./CurriculumPreview";
 import CurriculumStyles from "./CurriculumStyles";
 import ImageUploader from "./ImageUploader";
+import GeneratingOverlay from "./GeneratingOverlay";
 import PaymentModal from "./PaymentModal";
-import FormikPersist from "./FormikPersist";
-import {
-  Autocomplete as MuiAutocomplete,
-  TextField as MuiTextField,
-  Slider as MuiSlider,
-  Select as MuiSelect,
-  MenuItem as MuiMenuItem,
-  FormControl as MuiFormControl,
-} from "@mui/material";
-import "./editorMui.css";
+import "./paymentModal.css";
 import useTheme from "../hooks/useTheme";
 import useFont from "../hooks/useFont";
 import { renderToString } from "react-dom/server";
@@ -54,47 +46,8 @@ const THEME_LABELS = {
   "dark-slate": "Escuro Slate",
 };
 
-const API_URL = "https://resume-generation-payment.vercel.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 const MAX_HTML_SIZE = 2 * 1024 * 1024; // 2 MB safety limit
-
-// Chave usada tanto aqui (carregar) quanto no <FormikPersist> (salvar).
-const DRAFT_STORAGE_KEY = "curriculo-editor-draft";
-
-// Chave para persistir o tema da INTERFACE do editor (claro/escuro/slate) -
-// diferente do tema de cor do currículo em si (que já é salvo dentro do
-// próprio rascunho do Formik, em themeObject/paletteId).
-const UI_THEME_STORAGE_KEY = "curriculo-editor-ui-theme";
-
-function loadInitialUiTheme() {
-  try {
-    const saved = localStorage.getItem(UI_THEME_STORAGE_KEY);
-    return THEMES.includes(saved) ? saved : "light";
-  } catch {
-    return "light";
-  }
-}
-
-/**
- * Recupera o rascunho salvo no localStorage, se existir e for válido.
- * Faz um merge raso com os valores padrão - assim, se novos campos
- * forem adicionados no futuro (ex: um novo campo em "personal"), um
- * rascunho antigo salvo antes dessa mudança não quebra o formulário
- * por faltar a chave.
- */
-function loadInitialValues() {
-  try {
-    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) return initialValues;
-
-    const saved = JSON.parse(raw);
-    if (!saved || typeof saved !== "object") return initialValues;
-
-    return { ...initialValues, ...saved };
-  } catch (err) {
-    console.warn("Rascunho salvo estava corrompido - usando valores padrão:", err.message);
-    return initialValues;
-  }
-}
 
 /* ─── Initial values ───────────────────────────────────────── */
 const initialValues = {
@@ -324,21 +277,13 @@ const SectionPersonal = ({ values, setFieldValue }) => (
                 </div>
                 <div className="field">
                   <label>Ícone</label>
-                  <MuiFormControl size="small" fullWidth className="mui-field-sm">
-                    <MuiSelect
-                      value={link.icon || "bx-link-alt"}
-                      onChange={(e) =>
-                        setFieldValue(`contact.links.${i}.icon`, e.target.value)
-                      }
-                    >
-                      {ICON_OPTIONS.map((o) => (
-                        <MuiMenuItem key={o.id} value={o.class}>
-                          <i className={`bx ${o.class}`} style={{ marginRight: 8 }} />
-                          {o.name}
-                        </MuiMenuItem>
-                      ))}
-                    </MuiSelect>
-                  </MuiFormControl>
+                  <Field name={`contact.links.${i}.icon`} as="select">
+                    {ICON_OPTIONS.map((o) => (
+                      <option key={o.id} value={o.class}>
+                        {o.name}
+                      </option>
+                    ))}
+                  </Field>
                 </div>
                 <div className="link-item__fields">
                   <F label="Rótulo" name={`contact.links.${i}.label`} />
@@ -422,133 +367,70 @@ const SectionEducation = ({ values }) => (
 );
 
 /* ─── Section: Skills ──────────────────────────────────────── */
-// Lista curada de sugestões p/ o autocomplete de competências. O gerador
-// nasceu pensado para devs, mas o campo aceita qualquer texto livre —
-// isso é só uma lista de atalhos, não uma trava.
-const SKILL_SUGGESTIONS = [
-  "JavaScript", "TypeScript", "React", "React Native", "Next.js", "Vue.js",
-  "Node.js", "Express", "NestJS", "Python", "Django", "Flask", "Java",
-  "Spring Boot", "PHP", "Laravel", "Ruby on Rails", "Go", "C#", ".NET",
-  "PostgreSQL", "MySQL", "MongoDB", "Redis", "Docker", "Kubernetes",
-  "AWS", "Git", "CI/CD", "GraphQL", "Tailwind CSS", "Figma", "UI/UX",
-  "Scrum", "Comunicação", "Liderança", "Gestão de projetos", "Excel",
-];
-
-const SectionSkills = ({ values, setFieldValue }) => {
-  const [dragIndex, setDragIndex] = useState(null);
-  const [overIndex, setOverIndex] = useState(null);
-
-  const handleDrop = (targetIndex) => {
-    if (dragIndex === null || dragIndex === targetIndex) {
-      setDragIndex(null);
-      setOverIndex(null);
-      return;
-    }
-    const reordered = [...values.skills];
-    const [moved] = reordered.splice(dragIndex, 1);
-    reordered.splice(targetIndex, 0, moved);
-    setFieldValue("skills", reordered);
-    setDragIndex(null);
-    setOverIndex(null);
-  };
-
-  return (
-    <div className="editor-section" id="section-skills">
-      <FieldArray name="skills">
-        {({ push, remove }) => (
-          <>
-            <p className="field-hint skills-hint">
-              <i className="bx bx-move" /> Arraste pelo ícone para reordenar
-            </p>
-
-            {values.skills.map((skill, i) => (
-              <div
-                className={`skill-row skill-row--draggable ${
-                  overIndex === i ? "skill-row--drag-over" : ""
-                } ${dragIndex === i ? "skill-row--dragging" : ""}`}
-                key={i}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  if (overIndex !== i) setOverIndex(i);
-                }}
-                onDragLeave={() => setOverIndex((prev) => (prev === i ? null : prev))}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  handleDrop(i);
-                }}
+const SectionSkills = ({ values }) => (
+  <div className="editor-section" id="section-skills">
+    <FieldArray name="skills">
+      {({ push, remove, swap }) => (
+        <>
+          {values.skills.map((_, i) => (
+            <div className="skill-row" key={i}>
+              <button
+                type="button"
+                className="btn-icon up-down"
+                onClick={() => swap(i, i - 1)}
+                disabled={i === 0}
+                title="Subir"
               >
-                <span
-                  className="skill-row__handle"
-                  draggable
-                  onDragStart={() => setDragIndex(i)}
-                  onDragEnd={() => {
-                    setDragIndex(null);
-                    setOverIndex(null);
-                  }}
-                  title="Arrastar para reordenar"
-                >
-                  <i className="bx bx-dots-vertical-rounded" />
-                  <i className="bx bx-dots-vertical-rounded" />
-                </span>
-
-                <MuiAutocomplete
-                  freeSolo
-                  size="small"
-                  options={SKILL_SUGGESTIONS}
-                  value={skill.name}
-                  inputValue={skill.name}
-                  onInputChange={(_, newValue) =>
-                    setFieldValue(`skills.${i}.name`, newValue)
-                  }
-                  className="skill-row__name mui-field-sm"
-                  renderInput={(params) => (
-                    <MuiTextField
-                      {...params}
-                      placeholder="Competência"
-                      variant="outlined"
-                    />
-                  )}
-                />
-
-                <div className="skill-row__level">
-                  <MuiSlider
-                    size="small"
-                    value={skill.level}
-                    min={1}
-                    max={5}
-                    step={1}
-                    marks
-                    valueLabelDisplay="auto"
-                    onChange={(_, newValue) =>
-                      setFieldValue(`skills.${i}.level`, newValue)
-                    }
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className="btn-icon danger"
-                  onClick={() => remove(i)}
-                  title="Remover"
-                >
-                  <i className="bx bx-trash" />
-                </button>
-              </div>
-            ))}
-
-            <button
-              type="button"
-              className="btn-add"
-              onClick={() => push({ name: "", level: 3 })}
-            >
-              <i className="bx bx-plus" /> Adicionar competência
-            </button>
-          </>
-        )}
-      </FieldArray>
-    </div>
-  );
-};
+                <i className="bx bx-chevron-up" />
+              </button>
+              <button
+                type="button"
+                className="btn-icon up-down"
+                onClick={() => swap(i, i + 1)}
+                disabled={i === values.skills.length - 1}
+                title="Descer"
+              >
+                <i className="bx bx-chevron-down" />
+              </button>
+              <Field
+                name={`skills.${i}.name`}
+                type="text"
+                className="input-sm"
+                placeholder="Competência"
+              />
+              <Field
+                name={`skills.${i}.level`}
+                as="select"
+                className="input-sm"
+              >
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </Field>
+              <button
+                type="button"
+                className="btn-icon danger"
+                onClick={() => remove(i)}
+                title="Remover"
+              >
+                <i className="bx bx-trash" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="btn-add"
+            onClick={() => push({ name: "", level: 3 })}
+          >
+            <i className="bx bx-plus" /> Adicionar competência
+          </button>
+        </>
+      )}
+    </FieldArray>
+  </div>
+);
 
 /* ─── Section: Experience ──────────────────────────────────── */
 const SectionExperience = ({ values }) => (
@@ -716,7 +598,9 @@ const TopbarSelectors = ({
 );
 
 /* ─── Main Editor ──────────────────────────────────────────── */
-const CurriculumEditor = () => {
+// initialData (opcional): quando vem do CurriculumWizard, entra aqui -
+// senão, cai no initialValues padrão (em branco), como sempre foi.
+const CurriculumEditor = ({ initialData } = {}) => {
   const {
     themeObject,
     nextTheme,
@@ -729,56 +613,20 @@ const CurriculumEditor = () => {
   const { font, nextFont, prevFont } = useFont();
 
   const [activeSection, setActiveSection] = useState("labels");
-  const [uiTheme, setUiTheme] = useState(loadInitialUiTheme);
+  const [uiTheme, setUiTheme] = useState("light");
   const [zoom, setZoom] = useState(75);
   const [toasts, setToasts] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingExport, setPendingExport] = useState(null); // { html, email }
-
-  // Busca a publicKey do pagamento assim que o EDITOR abre (não quando o
-  // modal abre) - assim, quando o usuário clicar em "Exportar PDF", o
-  // widget já nasce pronto pra montar, sem spinner de carregamento.
-  // Extraída como função (não só inline no useEffect) pra poder ser
-  // chamada de novo pelo botão "Tentar novamente" do PaymentModal.
-  const [paymentPublicKey, setPaymentPublicKey] = useState(null);
-  const [paymentConfigError, setPaymentConfigError] = useState(null);
-
-  const fetchPaymentConfig = useCallback(() => {
-    setPaymentConfigError(null);
-
-    fetch(`${API_URL}/config`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (!data?.publicKey) throw new Error("publicKey ausente na resposta.");
-        setPaymentPublicKey(data.publicKey);
-      })
-      .catch((err) => {
-        console.error("Erro ao pré-carregar configuração de pagamento:", err);
-        setPaymentConfigError(err.message);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchPaymentConfig();
-  }, [fetchPaymentConfig]);
-
   const [menuOpen, setMenuOpen] = useState(false);
 
-  /* Apply UI theme to document + salva a escolha para a próxima visita */
+  /* Apply UI theme to document */
   useEffect(() => {
     if (uiTheme === "light") {
       document.documentElement.removeAttribute("data-theme");
     } else {
       document.documentElement.setAttribute("data-theme", uiTheme);
-    }
-    try {
-      localStorage.setItem(UI_THEME_STORAGE_KEY, uiTheme);
-    } catch {
-      // localStorage indisponível (modo privado, quota cheia etc.) - não é crítico
     }
   }, [uiTheme]);
 
@@ -908,23 +756,20 @@ const CurriculumEditor = () => {
     nextTheme,
   };
 
-  // Lido apenas uma vez, na montagem - Formik ignora mudanças posteriores
-  // na prop initialValues por padrão, o que já é o comportamento certo aqui.
-  const startingValues = useMemo(() => loadInitialValues(), []);
-
   return (
-    <Formik initialValues={startingValues} onSubmit={handleSubmit}>
+    <Formik
+      initialValues={initialData ?? initialValues}
+      onSubmit={handleSubmit}
+    >
       {({ values, setFieldValue }) => (
         <div className="app-shell">
-          <FormikPersist name={DRAFT_STORAGE_KEY} />
-
           {/* ── Topbar ── */}
           <header className="topbar">
             <div className="topbar__brand">
               <div className="topbar__brand-icon">
                 <i className="bx bx-file" />
               </div>
-              <span>CurrículoPro</span>
+              <span>Gerador de Currículos</span>
             </div>
 
             <div className="topbar__divider" />
@@ -1018,7 +863,7 @@ const CurriculumEditor = () => {
                 />
                 <SectionObjective />
                 <SectionEducation values={values} />
-                <SectionSkills values={values} setFieldValue={setFieldValue} />
+                <SectionSkills values={values} />
                 <SectionExperience values={values} />
               </div>
             </aside>
@@ -1072,25 +917,13 @@ const CurriculumEditor = () => {
           </div>
 
           {/* Loading overlay */}
-          {isGenerating && (
-            <div className="loading-overlay">
-              <div className="loading-overlay__card">
-                <div className="loading-spinner" />
-                <p className="loading-overlay__text">Gerando PDF…</p>
-              </div>
-            </div>
-          )}
+          {isGenerating && <GeneratingOverlay />}
 
-          {/* Página de pagamento (Pix + Cartão), via @payment-system-mp/react-widget.
-              publicKey já veio pré-carregada (ver fetchPaymentConfig acima), então o
-              widget monta instantaneamente ao abrir, sem tela de loading. */}
+          {/* Payment modal */}
           {showPaymentModal && (
             <PaymentModal
-              publicKey={paymentPublicKey}
-              configError={paymentConfigError}
               email={pendingExport?.email}
               onApproved={handlePaymentApproved}
-              onRetry={fetchPaymentConfig}
               onClose={() => {
                 setShowPaymentModal(false);
                 setPendingExport(null);

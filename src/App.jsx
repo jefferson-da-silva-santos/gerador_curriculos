@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import CurriculumEditor from "./components/CurriculumEditor";
+import CurriculumEntry from "./components/CurriculumEntry";
 import ThemeProvider from "./provider/ThemeProvider";
 import FontProvider from "./provider/FontProvider";
 import LandingPage from "./pages/LandingPage";
@@ -15,7 +15,7 @@ function App() {
           <div className="App">
             <FontProvider>
               <ThemeProvider>
-                <CurriculumEditor />
+                <CurriculumEntry />
               </ThemeProvider>
             </FontProvider>
           </div>

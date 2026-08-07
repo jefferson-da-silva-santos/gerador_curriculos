@@ -1481,3 +1481,8 @@ body.is-submitting .btn-generate { opacity: 0.6; }
 .field { gap: 6px; }
 .section-block { gap: 14px; }
 .editor-section.active { gap: 20px; }
+
+.logo-image {
+  max-width: 2.5em;
+  border-radius: .5rem;
+}

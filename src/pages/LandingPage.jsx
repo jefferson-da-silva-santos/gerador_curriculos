@@ -206,7 +206,11 @@ export default function LandingPage() {
       >
         <div className={styles.navInner}>
           <div className={styles.logo}>
-            <i className="bx bxs-file-doc" />
+            <img
+              src="logo.png"
+              style={{ width: "2.3rem" }}
+              className="logo-image"
+            />
             CurrículoPro
           </div>
           <ul className={styles.navLinks}>
@@ -628,7 +632,11 @@ export default function LandingPage() {
         <div className={styles.footerTop}>
           <div className={styles.footerBrand}>
             <div className={styles.logo}>
-              <i className="bx bxs-file-doc" />
+              <img
+                src="logo.png"
+                style={{ width: "2.3rem" }}
+                className="logo-image"
+              />
               CurrículoPro
             </div>
             <p>

@@ -50,9 +50,10 @@ export const inlineStyles = {
    ============================================================
    Cada perfil segue exatamente o mesmo shape que o Formik/editor já
    espera (personal, contact, labels, skills, objective, education,
-   experience). O templateId de cada um é escolhido pra combinar com
-   o nicho (ex: "popular"/"direto" pra quem não é da área de tech),
-   mas o usuário pode trocar o modelo livremente depois no editor.
+   experience). Todos têm volume de conteúdo equivalente (>= 3
+   experiências, formação dupla, 10+ competências) para que nenhum
+   pareça "mais pobre" que os outros, independente de qual for
+   sorteado ou de qual template estiver ativo.
    ============================================================ */
 
 const PROFILE_DEV = {
@@ -194,6 +195,10 @@ const PROFILE_MERCADO = {
     { name: "Uso de sistema de PDV", level: 4 },
     { name: "Recebimento de mercadorias", level: 3 },
     { name: "Comunicação", level: 5 },
+    { name: "Resolução de conflitos", level: 3 },
+    { name: "Organização de estoque", level: 4 },
+    { name: "Precificação de produtos", level: 3 },
+    { name: "Proatividade", level: 4 },
   ],
   objective:
     "Atuar na área de comércio e atacarejo, contribuindo com agilidade no atendimento, organização do estoque e bom relacionamento com os clientes. Disponível para início imediato, inclusive em escalas de fim de semana e feriados, com histórico de assiduidade e proatividade no dia a dia da loja.",
@@ -247,6 +252,7 @@ const PROFILE_MERCADO = {
       responsibilities: [
         "Organização geral da loja, limpeza e reposição de pequenos volumes.",
         "Apoio à equipe de vendas em datas de maior movimento.",
+        "Controle de etiquetas de preço e comunicação de divergências ao setor responsável.",
       ],
     },
   ],
@@ -284,6 +290,10 @@ const PROFILE_LANCHONETE = {
     { name: "Montagem de pedidos", level: 5 },
     { name: "Controle de estoque de insumos", level: 3 },
     { name: "Trabalho em equipe", level: 5 },
+    { name: "Agilidade no atendimento", level: 4 },
+    { name: "Boas práticas de manipulação", level: 4 },
+    { name: "Organização de comandas", level: 4 },
+    { name: "Comunicação", level: 4 },
   ],
   objective:
     "Atuar na área de alimentação, com foco em atendimento rápido e cordial, boas práticas de higiene e trabalho em equipe. Disponibilidade para atuar em turnos, incluindo finais de semana e feriados, com experiência tanto no salão quanto no apoio à cozinha.",
@@ -335,6 +345,7 @@ const PROFILE_LANCHONETE = {
       responsibilities: [
         "Apoio na montagem e organização de espaços para eventos.",
         "Atendimento a convidados e suporte à equipe de cozinha em eventos.",
+        "Controle de materiais e utensílios utilizados durante o serviço.",
       ],
     },
   ],
@@ -378,6 +389,9 @@ const PROFILE_ADMINISTRATIVO = {
     { name: "Controle de contas a pagar/receber", level: 4 },
     { name: "Pacote Office", level: 5 },
     { name: "Atendimento telefônico", level: 4 },
+    { name: "Organização de arquivos", level: 5 },
+    { name: "Lançamento de notas fiscais", level: 3 },
+    { name: "Comunicação escrita", level: 4 },
   ],
   objective:
     "Atuar na área administrativa, aplicando organização, atenção a detalhes e proatividade na rotina de escritório, com foco em apoiar a equipe, otimizar processos internos e contribuir para a fluidez das operações do setor.",
@@ -429,6 +443,7 @@ const PROFILE_ADMINISTRATIVO = {
       responsibilities: [
         "Organização de documentos contábeis e apoio à equipe fiscal.",
         "Atendimento a clientes por telefone e e-mail.",
+        "Apoio na conferência de guias e obrigações mensais.",
       ],
     },
   ],
@@ -443,22 +458,44 @@ const EXAMPLE_PROFILES = [
 ];
 
 /**
- * Sorteia um perfil de exemplo entre os nichos disponíveis.
- * Usado como fallback quando não há rascunho salvo nem dados do
- * wizard - dá mais variedade do que sempre abrir com o mesmo exemplo.
+ * Sorteia um perfil de exemplo entre os nichos disponíveis, só em
+ * memória - não grava nada. Útil para preencher "buracos" num merge
+ * com um rascunho já salvo (ver loadDraftOrDefault).
  */
 export function getRandomInitialValues() {
   const index = Math.floor(Math.random() * EXAMPLE_PROFILES.length);
   return EXAMPLE_PROFILES[index];
 }
 
+/**
+ * Sorteia e IMEDIATAMENTE persiste um perfil de exemplo no localStorage,
+ * antes de devolvê-lo. Diferente de só sortear em memória, isso garante
+ * que, mesmo se o usuário recarregar a página um milissegundo depois de
+ * abrir o editor (antes do autosave debounced do Formik disparar), o
+ * próximo carregamento encontre esse mesmo perfil salvo - não sorteia
+ * de novo. O sorteio só acontece de fato quando NÃO existe draft nenhum
+ * ainda (ver loadDraftOrDefault, em CurriculumEditor.jsx).
+ */
+export function getRandomInitialValuesAndPersist(storageKey) {
+  const profile = getRandomInitialValues();
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(profile));
+  } catch {
+    /* localStorage indisponível - segue só em memória, sem persistir */
+  }
+  return profile;
+}
+
 // Mantido por compatibilidade com quem ainda importa `initialValues`
 // diretamente (ex: código legado) - sempre o perfil de dev, fixo.
 export const initialValues = PROFILE_DEV;
 
-// Mapa de classe Boxicons (salva nos dados do usuário) -> nome do Icon SVG.
-// Necessário porque contact.links[].icon guarda a classe antiga
-// ("bxl-linkedin-square"), mas os templates agora renderizam via <Icon />.
+// Mapa de classe Boxicons (salva nos dados do usuário, em
+// contact.links[].icon) -> nome do Icon SVG (ver utils/icons.jsx).
+// Necessário porque os templates renderizam ícones via <Icon /> (SVG
+// inline), mas os dados salvos ainda guardam a classe antiga do
+// Boxicons (ex: "bxl-linkedin-square") - esse mapa faz a ponte entre
+// os dois.
 export const BOXICON_TO_SVG_NAME = {
   "bx-link-alt": "link",
   "bxl-linkedin-square": "linkedin",
@@ -466,7 +503,7 @@ export const BOXICON_TO_SVG_NAME = {
   "bx-globe": "globe",
   "bx-envelope": "envelope",
   "bxl-whatsapp": "whatsapp",
-  "bxl-twitter": "link",       // fallback genérico - adicione paths específicos se quiser
+  "bxl-twitter": "link",
   "bxl-facebook-square": "link",
   "bxl-instagram-alt": "link",
   "bxl-stack-overflow": "link",

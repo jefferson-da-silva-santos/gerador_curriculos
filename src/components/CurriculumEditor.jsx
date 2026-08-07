@@ -830,10 +830,8 @@ const CurriculumEditor = ({ initialData } = {}) => {
           {/* ── Topbar ── */}
           <header className="topbar">
             <div className="topbar__brand">
-              <div className="topbar__brand-icon">
-                <i className="bx bx-file" />
-              </div>
-              <span>Gerador de Currículos</span>
+              <img src="logo.png" alt="" className="logo-image" />
+              <span>Crie seu </span>
             </div>
 
             <div className="topbar__divider" />
